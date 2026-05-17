@@ -157,8 +157,29 @@ export class AudioRecorder {
   }
 }
 
-export function playBeep(type: "start" | "stop" | "done") {
+export function playBeep(type: "start" | "stop" | "done" | "cancel") {
   const ctx = new AudioContext();
+
+  if (type === "cancel") {
+    // Two quick descending notes — distinct from the single-sweep stop beep.
+    const t0 = ctx.currentTime;
+    const playNote = (freq: number, startAt: number) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(freq, startAt);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      gain.gain.setValueAtTime(0.18, startAt);
+      gain.gain.exponentialRampToValueAtTime(0.001, startAt + 0.1);
+      osc.start(startAt);
+      osc.stop(startAt + 0.11);
+    };
+    playNote(520, t0);
+    playNote(320, t0 + 0.1);
+    setTimeout(() => ctx.close(), 350);
+    return;
+  }
 
   if (type === "done") {
     // Two-note ascending chime — clearly distinct from start/stop beeps.

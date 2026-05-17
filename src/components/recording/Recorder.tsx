@@ -203,6 +203,7 @@ export function Recorder() {
     } else if (state === "processing") {
       abortRef.current = true;
     }
+    playBeep("cancel");
     rs.reset();
     await hideOverlay();
   }, [rs]);

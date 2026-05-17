@@ -1,6 +1,6 @@
 # Warid (وارِد)
 
-**[Website](https://maslooh1.github.io/Warid/) · [Releases](https://github.com/Maslooh1/Warid/releases) · [Issues](https://github.com/Maslooh1/Warid/issues)**
+**[Website](https://maslooh1.github.io/Warid/) · [Releases](https://github.com/mohamedmaslooh/Warid/releases) · [Issues](https://github.com/mohamedmaslooh/Warid/issues)**
 
 Open-source desktop app that records your voice and sends it directly to Google Gemini for transcription, translation, or any custom output you define via prompt templates.
 
@@ -24,7 +24,7 @@ Visit the [website](https://maslooh1.github.io/Warid/) for a visual overview and
 
 ## Installation
 
-Download from the [website](https://maslooh1.github.io/Warid/) or directly from the [Releases page](https://github.com/Maslooh1/Warid/releases):
+Download from the [website](https://maslooh1.github.io/Warid/) or directly from the [Releases page](https://github.com/mohamedmaslooh/Warid/releases):
 
 | Platform | File |
 |----------|------|
@@ -73,7 +73,7 @@ Requirements:
 - (Linux) `webkit2gtk-4.1`, `libsoup-3.0`, `libappindicator3-dev`
 
 ```bash
-git clone https://github.com/Maslooh1/Warid.git
+git clone https://github.com/mohamedmaslooh/Warid.git
 cd Warid
 npm install
 npm run tauri dev      # development
