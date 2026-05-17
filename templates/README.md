@@ -17,10 +17,10 @@ Each `.json` file here is a Warid template you can import via **Templates → Im
 }
 ```
 
-- `output_language` — `"en"`, `"ar"`, or `null` (let Gemini decide)
-- `model` — a Gemini model ID, or `null` to use the user's default
-- `icon` — any [Phosphor icon](https://phosphoricons.com/) name
-- `is_default` — always `0` for community templates
+- `output_language`: `"en"`, `"ar"`, or `null` (let Gemini decide)
+- `model`: a Gemini model ID, or `null` to use the user's default
+- `icon`: any [Phosphor icon](https://phosphoricons.com/) name
+- `is_default`: always `0` for community templates
 
 ## Contributing
 

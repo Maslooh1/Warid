@@ -247,10 +247,10 @@ export async function* streamAudio(
   onLog?.("info", `النموذج: ${entry?.label ?? modelId}`);
 
   if (provider === "gemini") {
-    if (!settings.apiKey) throw new Error("Gemini API Key مفقود — أضفه من الإعدادات");
+    if (!settings.apiKey) throw new Error("Gemini API Key مفقود، أضفه من الإعدادات");
     yield* streamTranscription(settings.apiKey, modelId, template, audioBase64, mimeType, onLog);
   } else {
-    if (!settings.openRouterApiKey) throw new Error("OpenRouter API Key مفقود — أضفه من الإعدادات");
+    if (!settings.openRouterApiKey) throw new Error("OpenRouter API Key مفقود، أضفه من الإعدادات");
     yield* streamOpenRouter(settings.openRouterApiKey, modelId, template, audioBase64, mimeType, undefined, onLog);
   }
 }

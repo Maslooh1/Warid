@@ -33,7 +33,7 @@ export const translations = {
     // Activity log (inline)
     log_section: "Activity Log",
     log_clear:   "مسح",
-    log_empty:   "no activity yet — start recording to see live model logs",
+    log_empty:   "no activity yet. Start recording to see live model logs",
 
     // History page
     hist_title:    "السجل",
@@ -75,14 +75,14 @@ export const translations = {
     set_gemini_free:   "مجاناً من",
     set_or:            "OpenRouter (اختياري)",
     set_or_key:        "OpenRouter API Key",
-    set_or_from:       "مطلوب لنماذج OpenRouter — من",
+    set_or_from:       "مطلوب لنماذج OpenRouter، من",
     set_model:         "النموذج الافتراضي",
     set_model_hint:    "النموذج المستخدم لجميع الأوامر ما لم يُحدَّد نموذج مختلف في الأمر نفسه.",
     set_behavior:      "السلوك",
     set_autocopy:      "نسخ النتيجة تلقائياً للحافظة",
     set_save_hist:     "حفظ السجل",
     set_logs:          "تفعيل Logs",
-    set_logs_hint:     "تسجيل تفاصيل كل عملية تفريغ — مرئية من صفحة Logs",
+    set_logs_hint:     "تسجيل تفاصيل كل عملية تفريغ، مرئية من صفحة Logs",
     set_launch_startup:      "التشغيل عند بدء النظام",
     set_launch_startup_hint: "فتح وارِد تلقائياً عند تشغيل الكمبيوتر",
     set_appearance:    "المظهر",
@@ -101,7 +101,7 @@ export const translations = {
     logs_clear:    "مسح",
     logs_disabled: "الـ Logs معطّلة",
     logs_dis_hint: "فعّلها من الإعدادات ← \"تفعيل Logs\"",
-    logs_empty:    "لا يوجد logs حتى الآن — ابدأ تسجيلاً لترى الناتج هنا",
+    logs_empty:    "لا يوجد logs حتى الآن. ابدأ تسجيلاً لترى الناتج هنا",
 
     // Log messages
     log_msg_sending: "إرسال الصوت",
@@ -157,7 +157,7 @@ export const translations = {
     anl_latest:      "آخر تقرير",
     anl_past_reports:"تقارير سابقة",
     anl_away:        "متبقّي {0} كلمة",
-    anl_subtitle:    "لوحة قيادة التفريغ — كل ما يهمّ في لمحة.",
+    anl_subtitle:    "لوحة قيادة التفريغ، كل ما يهمّ في لمحة.",
 
     // Milestone labels
     ms_100:    "المئة الأولى",
@@ -189,7 +189,7 @@ export const translations = {
     ob_title:         "مرحباً بك في وارِد",
     ob_sub:           "مساعدك الذكي للتفريغ الصوتي وتنفيذ الأوامر بصوتك",
     ob_about_t:       "ما هو وارِد؟",
-    ob_about_b:       "وارِد تطبيق يحوّل صوتك إلى نصوص ذكية فوراً. سجّل ملاحظاتك أو اضغط اختصاراً مخصصاً وسيتولى وارِد التفريغ والتنسيق وحتى تنفيذ الأوامر — كتلخيص، ترجمة، صياغة بريد، أو أي قالب تنشئه بنفسك.",
+    ob_about_b:       "وارِد تطبيق يحوّل صوتك إلى نصوص ذكية فوراً. سجّل ملاحظاتك أو اضغط اختصاراً مخصصاً وسيتولى وارِد التفريغ والتنسيق وحتى تنفيذ الأوامر: تلخيص، ترجمة، صياغة بريد، أو أي قالب تنشئه بنفسك.",
     ob_pick_lang:     "اللغة",
     ob_pick_theme:    "المظهر",
     ob_pick_mic:      "الميكروفون",
@@ -253,7 +253,7 @@ export const translations = {
 
     log_section: "Activity Log",
     log_clear:   "Clear",
-    log_empty:   "no activity yet — start recording to see live model logs",
+    log_empty:   "no activity yet. Start recording to see live model logs",
 
     hist_title:    "History",
     hist_clear:    "Clear All",
@@ -292,14 +292,14 @@ export const translations = {
     set_gemini_free:   "Free from",
     set_or:            "OpenRouter (optional)",
     set_or_key:        "OpenRouter API Key",
-    set_or_from:       "Required for OpenRouter models — from",
+    set_or_from:       "Required for OpenRouter models, from",
     set_model:         "Default Model",
     set_model_hint:    "The model used for all commands unless a different model is specified in the command.",
     set_behavior:      "Behavior",
     set_autocopy:      "Auto-copy result to clipboard",
     set_save_hist:     "Save History",
     set_logs:          "Enable Logs",
-    set_logs_hint:     "Log details of each transcription — visible from the Logs page",
+    set_logs_hint:     "Log details of each transcription, visible from the Logs page",
     set_launch_startup:      "Launch on startup",
     set_launch_startup_hint: "Open Warid automatically when your computer starts",
     set_appearance:    "Appearance",
@@ -317,7 +317,7 @@ export const translations = {
     logs_clear:    "Clear",
     logs_disabled: "Logs are disabled",
     logs_dis_hint: "Enable from Settings → \"Enable Logs\"",
-    logs_empty:    "No logs yet — start a recording to see output here",
+    logs_empty:    "No logs yet. Start a recording to see output here",
 
     // Log messages
     log_msg_sending: "Sending audio",
@@ -372,7 +372,7 @@ export const translations = {
     anl_latest:      "Latest report",
     anl_past_reports:"Past reports",
     anl_away:        "{0} words away",
-    anl_subtitle:    "Your dictation cockpit — at a glance.",
+    anl_subtitle:    "Your dictation cockpit, at a glance.",
 
     ms_100:    "First Hundred",
     ms_500:    "Five Hundred",
@@ -400,7 +400,7 @@ export const translations = {
     ob_title:         "Welcome to Warid",
     ob_sub:           "Your AI-powered voice transcription and command assistant",
     ob_about_t:       "What is Warid?",
-    ob_about_b:       "Warid turns your voice into smart text in seconds. Record a note or press a custom shortcut and Warid will transcribe, format, and even run commands on your speech — summarize, translate, draft an email, or any template you create.",
+    ob_about_b:       "Warid turns your voice into smart text in seconds. Record a note or press a custom shortcut and Warid will transcribe, format, and even run commands on your speech: summarize, translate, draft an email, or any template you create.",
     ob_pick_lang:     "Language",
     ob_pick_theme:    "Appearance",
     ob_pick_mic:      "Microphone",

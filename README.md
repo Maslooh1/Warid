@@ -1,46 +1,68 @@
 # Warid (وارِد)
 
-Open-source desktop app that records audio and sends it directly to Google Gemini for transcription, translation, or any custom output you design via prompt templates.
+**[Website](https://maslooh1.github.io/Warid/) · [Releases](https://github.com/Maslooh1/Warid/releases) · [Issues](https://github.com/Maslooh1/Warid/issues)**
 
-No Whisper, no STT middle layer — Gemini is multimodal and understands Arabic, English, and code-switching natively. Define one prompt per template and route every recording through it.
+Open-source desktop app that records your voice and sends it directly to Google Gemini for transcription, translation, or any custom output you define via prompt templates.
+
+Gemini is natively multimodal and understands virtually every spoken language in the world. Speak in Arabic, English, French, Japanese, Spanish, or any other language, and Warid will produce text in whatever language and format your template specifies. The language behavior is entirely up to you.
+
+Visit the [website](https://maslooh1.github.io/Warid/) for a visual overview and direct download links.
 
 ## Features
 
-- **Record from microphone or upload an audio file**
-- **Custom prompt templates** — each with its own output language and Gemini model
-- **Streaming output** — text appears as Gemini generates it
+- **Record from microphone** or upload an audio file
+- **Any language, any output:** speak in one language, get text in another. Gemini supports 100+ languages natively
+- **Custom prompt templates,** each with its own output language and Gemini model
+- **Streaming output:** text appears word by word as Gemini generates it
 - **Auto-copy to clipboard** when transcription finishes
-- **Global hotkey** (Ctrl+Shift+R) — record from anywhere, even when the app is in the background
-- **System tray icon** — keep the app running silently
-- **History** — local SQLite store of past transcriptions, searchable
-- **Editable output** — fix typos before copying
-- **Privacy-first** — your audio is sent only to Google. No third-party server, no analytics.
+- **Global hotkey (Ctrl+Shift+R):** record from anywhere, even when the app is minimized
+- **System tray:** keep Warid running silently in the background
+- **History:** local SQLite store of past transcriptions, fully searchable
+- **Editable output:** fix anything before copying
+- **Privacy-first:** audio goes directly to Google using your own key, no third-party server, no analytics
 - **API key stored securely** in the OS keychain
-- **Bring your own key** — uses your free Google AI Studio API key
 
 ## Installation
 
-Download the latest `.msi` (Windows) / `.dmg` (macOS) / `.AppImage` (Linux) from the [Releases](https://github.com/maslooh/warid/releases) page.
+Download from the [website](https://maslooh1.github.io/Warid/) or directly from the [Releases page](https://github.com/Maslooh1/Warid/releases):
+
+| Platform | File |
+|----------|------|
+| Windows | `.exe` setup file or `.msi` installer |
+| macOS | `.dmg` (Apple Silicon or Intel) |
+| Linux | `.AppImage` (portable) or `.deb` (Debian/Ubuntu) |
 
 ## Getting an API Key
 
 1. Go to [aistudio.google.com](https://aistudio.google.com/apikey)
-2. Click **Get API key** → **Create API key in new project**
+2. Click **Get API key** and create one in a new project
 3. Copy the key
-4. Open Warid → Settings → paste the key
+4. Open Warid, go to Settings, and paste the key
 
-The free tier is generous; for most users it never runs out.
+The free tier is generous and covers most personal use entirely.
 
-## Default Templates
+## Language Support
 
-Warid ships with a **Coding Assistant** template tuned for dictating coding tasks. It transcribes mixed Arabic/English speech and rewrites it as a clean, structured developer brief in English.
+Warid works with any language Gemini understands, which covers virtually every major language in the world. You can:
 
-You can add unlimited custom templates from the **Templates** page. Each template can override:
-- the prompt body
-- output language (force English, force Arabic, or leave mixed)
-- Gemini model (e.g. `gemini-2.5-pro` for higher quality, `gemini-2.5-flash` for speed)
+- Speak in Arabic and get a polished English output
+- Speak in French and get a structured Arabic transcript
+- Mix two languages in the same sentence and get a clean result in either
+- Dictate in one language and receive output formatted in a completely different one
 
-Import/export templates as JSON to share with others. The `templates/` folder in this repo has community-contributed templates.
+The language behavior is defined entirely by your prompt template, giving you full control over both input and output.
+
+## Templates
+
+Warid ships with a **Coding Assistant** template designed for developers who dictate tasks. It turns mixed-language speech into a clean, structured brief in English.
+
+You can add unlimited custom templates from the Templates page. Each template controls:
+
+- The prompt body (what Gemini does with the audio)
+- Output language
+- Gemini model (default: `gemini-3.1-flash-lite`)
+
+Import and export templates as JSON to share with others. The `templates/` folder in this repo has community examples.
 
 ## Building from Source
 
@@ -51,8 +73,8 @@ Requirements:
 - (Linux) `webkit2gtk-4.1`, `libsoup-3.0`, `libappindicator3-dev`
 
 ```bash
-git clone https://github.com/maslooh/warid.git
-cd warid
+git clone https://github.com/Maslooh1/Warid.git
+cd Warid
 npm install
 npm run tauri dev      # development
 npm run tauri build    # build installer
@@ -62,21 +84,21 @@ The installer ends up in `src-tauri/target/release/bundle/`.
 
 ## Architecture
 
-- **Tauri 2** — Rust backend, ~10 MB bundle, ~30 MB RAM
-- **React 18 + TypeScript + Vite** — UI in the system webview
-- **Tailwind CSS 3** — sharp/corporate design (no rounded corners, Noto Kufi Arabic)
-- **@google/generative-ai** — Gemini SDK called directly from the webview with the user's API key
-- **SQLite** (via tauri-plugin-sql) — local templates + history
-- **Web Audio API + MediaRecorder** — webm/opus audio capture in the browser engine
+- **Tauri 2:** Rust backend, ~10 MB bundle, ~30 MB RAM at idle
+- **React 18 + TypeScript + Vite:** UI rendered in the system webview
+- **Tailwind CSS 3:** sharp/corporate design, Noto Kufi Arabic font
+- **@google/generative-ai:** Gemini SDK called directly from the frontend with the user's own API key
+- **SQLite** (via tauri-plugin-sql): local templates and history storage
+- **Web Audio API + MediaRecorder:** webm/opus audio capture
 
-The Gemini API call happens entirely in the frontend. The Rust side handles the global hotkey, system tray, and persistent storage.
+The Gemini API call happens entirely in the frontend. The Rust backend handles the global hotkey, system tray, and keychain access.
 
 ## Contributing
 
-Pull requests welcome. For bigger changes please open an issue first.
+Pull requests are welcome. For larger changes, open an issue first to discuss the direction.
 
-To contribute a community template, add a JSON file under `templates/` and submit a PR.
+To contribute a community template, add a JSON file under `templates/` and open a PR.
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+MIT. See [LICENSE](LICENSE).

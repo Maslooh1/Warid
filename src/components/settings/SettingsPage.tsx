@@ -181,7 +181,7 @@ export function SettingsPage() {
             ]}
           />
           <p className="text-xs" style={{ color: "var(--muted)" }}>
-            {uiLanguage === "ar" ? "تطبيق فوري — بدون حاجة للحفظ" : "Applied instantly — no save needed"}
+            {uiLanguage === "ar" ? "تطبيق فوري، بدون حاجة للحفظ" : "Applied instantly, no save needed"}
           </p>
         </section>
 
