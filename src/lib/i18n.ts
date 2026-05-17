@@ -95,6 +95,24 @@ export const translations = {
     set_save:          "حفظ الإعدادات",
     set_saved:         "تم الحفظ ✓",
 
+    // Settings tabs
+    set_tab_keys:      "مفاتيح API",
+    set_tab_models:    "النماذج",
+    set_tab_prefs:     "التفضيلات",
+    set_tab_about:     "عن البرنامج",
+
+    // About section
+    set_about_developer: "المطوّر",
+    set_about_github:    "الملف على GitHub",
+    set_about_version:   "الإصدار",
+    set_about_desc:      "سجّل صوتك واحصل على نص ذكي — فرّغ، ترجم، أو نفّذ أي أمر بالذكاء الاصطناعي عبر قوالب مخصصة، مدعوم بـ Google Gemini.",
+
+    // Update banner
+    upd_available: "تحديث جديد متاح",
+    upd_desc:      "الإصدار {0} جاهز للتحميل",
+    upd_download:  "تحميل",
+    upd_dismiss:   "تجاهل",
+
     // Logs page
     logs_title:    "Logs",
     logs_copy:     "نسخ الكل",
@@ -311,6 +329,24 @@ export const translations = {
     set_lang_en:       "English",
     set_save:          "Save Settings",
     set_saved:         "Saved ✓",
+
+    // Settings tabs
+    set_tab_keys:      "API Keys",
+    set_tab_models:    "Models",
+    set_tab_prefs:     "Preferences",
+    set_tab_about:     "About",
+
+    // About section
+    set_about_developer: "Developer",
+    set_about_github:    "GitHub Profile",
+    set_about_version:   "Version",
+    set_about_desc:      "Record your voice, get smart text — transcribe, translate, or run any AI command via custom templates, powered by Google Gemini.",
+
+    // Update banner
+    upd_available: "Update available",
+    upd_desc:      "Version {0} is ready to download",
+    upd_download:  "Download",
+    upd_dismiss:   "Dismiss",
 
     logs_title:    "Logs",
     logs_copy:     "Copy All",

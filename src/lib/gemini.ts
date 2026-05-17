@@ -224,13 +224,18 @@ export async function* streamOpenRouter(
   onLog?.("info", `← stream complete: ${totalChars} chars in ${Date.now() - tReq}ms`);
 }
 
-export const KNOWN_MODELS = [
-  { id: "gemini-3.1-flash-lite",                                    provider: "gemini"      as const, label: "Gemini 3.1 Flash Lite" },
-  { id: "gemini-3-flash-preview",                                    provider: "gemini"      as const, label: "Gemini 3 Flash Preview" },
-  { id: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",        provider: "openrouter"  as const, label: "Nemotron 3 Nano Omni 30B (free)" },
-  { id: "google/gemini-3.1-flash-lite",                              provider: "openrouter"  as const, label: "Gemini 3.1 Flash Lite (OR)" },
-  { id: "google/gemini-3-flash-preview",                             provider: "openrouter"  as const, label: "Gemini 3 Flash Preview (OR)" },
-  { id: "google/gemini-2.5-flash-lite-preview-09-2025",              provider: "openrouter"  as const, label: "Gemini 2.5 Flash Lite Preview (OR)" },
+export type ModelQuota =
+  | { type: "free"; rpm: number; rpd: number }
+  | { type: "free_or_paid"; freeRpd: number; paidRpd: number }
+  | { type: "paid" };
+
+export const KNOWN_MODELS: { id: string; provider: "gemini" | "openrouter"; label: string; quota: ModelQuota }[] = [
+  { id: "gemini-3.1-flash-lite",                               provider: "gemini",     label: "Gemini 3.1 Flash Lite",           quota: { type: "free", rpm: 30, rpd: 500 } },
+  { id: "gemini-3-flash-preview",                              provider: "gemini",     label: "Gemini 3 Flash Preview",           quota: { type: "free", rpm: 10, rpd: 20 } },
+  { id: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free", provider: "openrouter", label: "Nemotron 3 Nano Omni 30B (free)",  quota: { type: "free_or_paid", freeRpd: 20, paidRpd: 1000 } },
+  { id: "google/gemini-3.1-flash-lite",                        provider: "openrouter", label: "Gemini 3.1 Flash Lite (OR)",       quota: { type: "paid" } },
+  { id: "google/gemini-3-flash-preview",                       provider: "openrouter", label: "Gemini 3 Flash Preview (OR)",      quota: { type: "paid" } },
+  { id: "google/gemini-2.5-flash-lite-preview-09-2025",        provider: "openrouter", label: "Gemini 2.5 Flash Lite Preview (OR)", quota: { type: "paid" } },
 ];
 
 export async function* streamAudio(

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { getVersion } from "@tauri-apps/api/app";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Sidebar } from "./components/layout/Sidebar";
 import { Recorder } from "./components/recording/Recorder";
@@ -12,16 +13,30 @@ import { Welcome } from "./components/onboarding/Welcome";
 import { useSettingsStore } from "./stores/settingsStore";
 import { useTemplatesStore } from "./stores/templatesStore";
 import { ControlBar } from "./components/recording/ControlBar";
+import { UpdateBanner } from "./components/layout/UpdateBanner";
+import { fetchLatestVersion, isNewer } from "./lib/updateCheck";
 
 export default function App() {
   const isOverlay = new URLSearchParams(window.location.search).has("overlay");
   const { load: loadSettings, settings, loaded, update } = useSettingsStore();
   const { load: loadTemplates, activeTemplateId, templates } = useTemplatesStore();
   const [welcomeDone, setWelcomeDone] = useState(false);
+  const [updateVersion, setUpdateVersion] = useState<string | null>(null);
+  const [updateDismissed, setUpdateDismissed] = useState(false);
 
   useEffect(() => {
     (async () => {
       await loadSettings();
+    })();
+  }, []);
+
+  // Check for a newer GitHub release once on startup
+  useEffect(() => {
+    if (isOverlay) return;
+    (async () => {
+      const current = await getVersion();
+      const latest = await fetchLatestVersion();
+      if (latest && isNewer(latest, current)) setUpdateVersion(latest);
     })();
   }, []);
 
@@ -89,6 +104,9 @@ export default function App() {
           <>
             <Sidebar />
             <main className="flex-1 flex flex-col overflow-hidden">
+              {updateVersion && !updateDismissed && (
+                <UpdateBanner version={updateVersion} onDismiss={() => setUpdateDismissed(true)} />
+              )}
               <Routes>
                 <Route path="/" element={<Recorder />} />
                 <Route path="/history" element={<HistoryPage />} />
