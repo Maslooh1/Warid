@@ -628,6 +628,7 @@ export function AnalyticsPage() {
     totalWords, totalSessions, timeSavedMin, effectiveWpm,
     nextMilestone: next, milestones,
     dailyActivity, currentStreak, paceWordsPerDay, bestDay,
+    topWords,
     analysing, loaded, load,
   } = useAnalyticsStore();
   const { settings } = useSettingsStore();
@@ -743,8 +744,8 @@ export function AnalyticsPage() {
                 )
               }
 
-              {latestMilestone && latestMilestone.report.topWords.length > 0
-                ? <TopWordsRank topWords={latestMilestone.report.topWords} />
+              {topWords.length > 0
+                ? <TopWordsRank topWords={topWords} />
                 : (
                   <div className="card flex items-center justify-center" style={{ padding: 22, gridColumn: "span 4", minHeight: 200 }}>
                     <div className="text-center">

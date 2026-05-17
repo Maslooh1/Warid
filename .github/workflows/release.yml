@@ -71,6 +71,19 @@ jobs:
         with:
           tagName: ${{ needs.auto-tag.outputs.new_tag }}
           releaseName: "Warid ${{ needs.auto-tag.outputs.new_tag }}"
-          releaseDraft: false
+          releaseDraft: true
           prerelease: false
           args: ${{ matrix.args }}
+
+  publish-release:
+    needs: [auto-tag, release]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Publish release
+        run: gh release edit "$TAG" --draft=false --repo "$REPO"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ needs.auto-tag.outputs.new_tag }}
+          REPO: ${{ github.repository }}

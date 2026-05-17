@@ -248,6 +248,16 @@ export function Recorder() {
 
   const handleCancel = useCallback(() => { handleAbortRecording(); }, [handleAbortRecording]);
 
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "x" && e.ctrlKey && e.altKey && (stateRef.current === "recording" || stateRef.current === "processing")) {
+        handleAbortRecording();
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [handleAbortRecording]);
+
   const handleRegenerate = useCallback(async () => {
     if (!rs.lastResult) return;
     const template = recordingTemplateRef.current ?? getActive();

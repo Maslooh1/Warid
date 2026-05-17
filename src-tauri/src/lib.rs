@@ -42,28 +42,88 @@ fn paste_at_cursor(app: tauri::AppHandle) {
 
     #[cfg(target_os = "windows")]
     {
-        use windows::Win32::UI::WindowsAndMessaging::{GetForegroundWindow, SetForegroundWindow};
+        use windows::Win32::Foundation::HWND;
+        use windows::Win32::System::Threading::{AttachThreadInput, GetCurrentThreadId};
+        use windows::Win32::UI::Input::KeyboardAndMouse::SetFocus;
+        use windows::Win32::UI::WindowsAndMessaging::{
+            GetForegroundWindow, GetWindow, GetWindowThreadProcessId, IsIconic,
+            IsWindowVisible, SetForegroundWindow, GW_HWNDNEXT,
+        };
 
-        // Step 1: Capture the HWND of whichever app currently has focus.
-        // We must do this BEFORE our window minimizes, because minimize itself
-        // changes the foreground window.
-        let prev_hwnd = unsafe { GetForegroundWindow() };
+        // Resolve Warid's own HWND so we never paste back into ourselves.
+        let warid_hwnd: HWND = app
+            .get_webview_window("main")
+            .and_then(|w| w.hwnd().ok())
+            .unwrap_or(HWND(std::ptr::null_mut()));
 
-        // Step 2: Minimize the Warid window.
-        if let Some(window) = app.get_webview_window("main") {
-            let _ = window.minimize();
+        // Step 1: Capture the foreground window.
+        let initial_foreground = unsafe { GetForegroundWindow() };
+        let warid_was_foreground = !warid_hwnd.0.is_null()
+            && !initial_foreground.0.is_null()
+            && initial_foreground.0 == warid_hwnd.0;
+
+        // Step 2: Pick a target. If Warid itself is in front (or nothing is),
+        // walk the Z-order for the next visible, non-minimized, non-Warid window.
+        let mut target_hwnd = initial_foreground;
+        if target_hwnd.0.is_null() || target_hwnd.0 == warid_hwnd.0 {
+            let start = if target_hwnd.0.is_null() { warid_hwnd } else { target_hwnd };
+            let mut cursor = unsafe { GetWindow(start, GW_HWNDNEXT) }
+                .unwrap_or(HWND(std::ptr::null_mut()));
+            let mut found = HWND(std::ptr::null_mut());
+            while !cursor.0.is_null() {
+                let visible = unsafe { IsWindowVisible(cursor).as_bool() };
+                let iconic = unsafe { IsIconic(cursor).as_bool() };
+                if visible && !iconic && cursor.0 != warid_hwnd.0 {
+                    found = cursor;
+                    break;
+                }
+                cursor = unsafe { GetWindow(cursor, GW_HWNDNEXT) }
+                    .unwrap_or(HWND(std::ptr::null_mut()));
+            }
+            target_hwnd = found;
         }
-        sleep(Duration::from_millis(100));
 
-        // Step 3: Explicitly restore focus to the previous app.
-        // This is the key step that was missing — minimize() alone does NOT
-        // guarantee Windows will return focus to the right window.
-        if !prev_hwnd.0.is_null() {
-            unsafe { let _ = SetForegroundWindow(prev_hwnd); }
+        // If we still have no target, bail before sending keystrokes — otherwise
+        // Ctrl+V lands in Warid itself or wherever the OS decides.
+        if target_hwnd.0.is_null() || target_hwnd.0 == warid_hwnd.0 {
+            return;
+        }
+
+        // Step 3: Only minimize Warid if it was actually the foreground.
+        // Minimizing an already-hidden/background window can disrupt focus.
+        if warid_was_foreground {
+            if let Some(window) = app.get_webview_window("main") {
+                let _ = window.minimize();
+            }
+            sleep(Duration::from_millis(80));
+        }
+
+        // Step 4: Force focus to the target using AttachThreadInput, which
+        // bypasses Windows' SetForegroundWindow lock. Without this, after
+        // Warid grabs the foreground once, the OS can silently refuse our
+        // subsequent SetForegroundWindow calls.
+        unsafe {
+            let mut _pid: u32 = 0;
+            let target_tid = GetWindowThreadProcessId(target_hwnd, Some(&mut _pid));
+            let current_tid = GetCurrentThreadId();
+            if target_tid != 0 && target_tid != current_tid {
+                let _ = AttachThreadInput(current_tid, target_tid, true);
+                let _ = SetForegroundWindow(target_hwnd);
+                let _ = SetFocus(Some(target_hwnd));
+                let _ = AttachThreadInput(current_tid, target_tid, false);
+            } else {
+                let _ = SetForegroundWindow(target_hwnd);
+            }
         }
         sleep(Duration::from_millis(80));
 
-        // Step 4: Send Ctrl+V to whatever is now in the foreground.
+        // Step 5: Verify the target really is in front before pressing Ctrl+V.
+        let now_foreground = unsafe { GetForegroundWindow() };
+        if now_foreground.0.is_null() || now_foreground.0 == warid_hwnd.0 {
+            return;
+        }
+
+        // Step 6: Send Ctrl+V.
         if let Ok(mut enigo) = Enigo::new(&Settings::default()) {
             let _ = enigo.key(Key::Control, Direction::Press);
             sleep(Duration::from_millis(30));

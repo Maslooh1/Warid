@@ -8,6 +8,7 @@ import {
   type DailyActivity,
 } from "../lib/db";
 import { runMilestoneAnalysis, type MilestoneReport } from "../lib/analyticsAI";
+import { computeTopWords } from "../lib/topWords";
 
 const HEATMAP_DAYS = 182; // ~26 weeks
 const PACE_WINDOW_DAYS = 14;
@@ -47,6 +48,7 @@ interface AnalyticsStore {
   currentStreak: number;
   paceWordsPerDay: number;
   bestDay: number;
+  topWords: Array<{ word: string; count: number }>;
   analysing: boolean;
   loaded: boolean;
 
@@ -91,6 +93,7 @@ export const useAnalyticsStore = create<AnalyticsStore>((set, get) => ({
   currentStreak: 0,
   paceWordsPerDay: 0,
   bestDay: 0,
+  topWords: [],
   analysing: false,
   loaded: false,
 
@@ -126,6 +129,7 @@ export const useAnalyticsStore = create<AnalyticsStore>((set, get) => ({
     const bestDay = dailyActivity.reduce((m, d) => Math.max(m, d.words), 0);
     const currentStreak = computeStreak(dailyActivity);
     const paceWordsPerDay = computePace(dailyActivity);
+    const topWords = computeTopWords(texts, 10);
 
     set({
       totalWords,
@@ -139,6 +143,7 @@ export const useAnalyticsStore = create<AnalyticsStore>((set, get) => ({
       currentStreak,
       paceWordsPerDay,
       bestDay,
+      topWords,
       loaded: true,
     });
 
