@@ -77,13 +77,24 @@ jobs:
 
   publish-release:
     needs: [auto-tag, release]
+    if: ${{ needs.auto-tag.result == 'success' && needs.release.result != 'cancelled' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - name: Publish release
-        run: gh release edit "$TAG" --draft=false --repo "$REPO"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ needs.auto-tag.outputs.new_tag }}
-          REPO: ${{ github.repository }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const tag = '${{ needs.auto-tag.outputs.new_tag }}';
+            const { data: release } = await github.rest.repos.getReleaseByTag({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag,
+            });
+            await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: release.data.id,
+              draft: false,
+            });
