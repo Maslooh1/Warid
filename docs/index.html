@@ -43,7 +43,7 @@
 <!-- ============== HERO ============== -->
 <section class="hero">
   <div class="container hero-grid">
-    <div>
+    <div class="reveal">
       <span class="hero-eyebrow">
         <span class="dot">و</span>
         <span data-i18n="hero.eyebrow">Open source · Arabic + English · Local-first</span>
@@ -80,7 +80,7 @@
     </div>
 
     <!-- Hero visual: fake app window + the actual floating overlay pill -->
-    <div class="hero-overlay-wrap">
+    <div class="hero-overlay-wrap reveal delay-200">
       <div class="hero-overlay-bg" aria-hidden="true"></div>
       <div class="hero-fake-window" aria-hidden="true">
         <div class="traffic"><span></span><span></span><span></span></div>
@@ -110,44 +110,44 @@
 <!-- ============== FEATURES ============== -->
 <section class="block" id="features">
   <div class="container">
-    <div class="section-head">
+    <div class="section-head reveal">
       <span class="section-label" data-i18n="features.label">Features</span>
       <h2 data-i18n="features.title">Built for fast, bilingual thinking.</h2>
       <p data-i18n="features.sub">Warid is small, sharp, and stays out of your way. Everything happens through one keyboard shortcut.</p>
     </div>
 
     <div class="features-grid">
-      <div class="feature-card">
+      <div class="feature-card reveal delay-100">
         <div class="feature-icon"><i data-lucide="keyboard" stroke-width="1.75"></i></div>
         <h3 data-i18n="f.hotkey.t">Global hotkey</h3>
         <p data-i18n="f.hotkey.d">Press Ctrl+Shift+R anywhere — even while another app is focused — and start dictating.</p>
       </div>
 
-      <div class="feature-card">
+      <div class="feature-card reveal delay-200">
         <div class="feature-icon"><i data-lucide="languages" stroke-width="1.75"></i></div>
         <h3 data-i18n="f.bilingual.t">Native Arabic + English</h3>
         <p data-i18n="f.bilingual.d">Full RTL support and code-switching. Talk in both languages in the same sentence — Warid handles it.</p>
       </div>
 
-      <div class="feature-card">
+      <div class="feature-card reveal delay-300">
         <div class="feature-icon"><i data-lucide="layout-template" stroke-width="1.75"></i></div>
         <h3 data-i18n="f.templates.t">Custom prompt templates</h3>
         <p data-i18n="f.templates.d">Transcribe, translate, polish, format emails, write code — each template with its own model and hotkey.</p>
       </div>
 
-      <div class="feature-card">
+      <div class="feature-card reveal delay-100">
         <div class="feature-icon"><i data-lucide="shield-check" stroke-width="1.75"></i></div>
         <h3 data-i18n="f.privacy.t">Your key, your data</h3>
         <p data-i18n="f.privacy.d">Audio goes straight from your machine to Google. No middleman, no analytics, no telemetry.</p>
       </div>
 
-      <div class="feature-card">
+      <div class="feature-card reveal delay-200">
         <div class="feature-icon"><i data-lucide="history" stroke-width="1.75"></i></div>
         <h3 data-i18n="f.history.t">Local history & search</h3>
         <p data-i18n="f.history.d">Every transcription is saved to a local SQLite database. Search the full text instantly.</p>
       </div>
 
-      <div class="feature-card">
+      <div class="feature-card reveal delay-300">
         <div class="feature-icon"><i data-lucide="bar-chart-2" stroke-width="1.75"></i></div>
         <h3 data-i18n="f.analytics.t">Word & speed analytics</h3>
         <p data-i18n="f.analytics.d">Track total words, sessions, time saved, effective WPM, streaks, and milestone progress — all stored locally.</p>
@@ -160,14 +160,14 @@
 <!-- ============== HOW IT WORKS ============== -->
 <section class="block" id="how" style="padding-top:0;">
   <div class="container">
-    <div class="section-head">
+    <div class="section-head reveal">
       <span class="section-label" data-i18n="how.label">How it works</span>
       <h2 data-i18n="how.title">From idea to clean text in three steps.</h2>
       <p data-i18n="how.sub">No accounts to create. No subscription. No data leaves your machine except the audio you choose to send.</p>
     </div>
 
     <div class="steps">
-      <div class="step-card">
+      <div class="step-card reveal delay-100">
         <div class="step-num">1</div>
         <h3 data-i18n="how.s1.t">Get a free Gemini key</h3>
         <p data-i18n="how.s1.d">Sign in with any Google account at Google AI Studio and copy your API key. The free tier covers most users entirely.</p>
@@ -176,13 +176,13 @@
         </a>
       </div>
 
-      <div class="step-card">
+      <div class="step-card reveal delay-200">
         <div class="step-num">2</div>
         <h3 data-i18n="how.s2.t">Press the hotkey, talk</h3>
         <p data-i18n="how.s2.d">Hit <span class="kbd">Ctrl</span> + <span class="kbd">Shift</span> + <span class="kbd">R</span> in any app — a tiny pill appears at the top of your screen. Pause, resume, or stop when done.</p>
       </div>
 
-      <div class="step-card">
+      <div class="step-card reveal delay-300">
         <div class="step-num">3</div>
         <h3 data-i18n="how.s3.t">Get text, instantly</h3>
         <p data-i18n="how.s3.d">Your transcription streams in, gets auto-copied to your clipboard, and is saved to local history. Paste it anywhere.</p>
@@ -194,7 +194,7 @@
 <!-- ============== SHOWCASE: APP MOCKUPS ============== -->
 <section class="block showcase-block" id="showcase" style="padding-top:0;">
   <div class="container">
-    <div class="section-head">
+    <div class="section-head reveal">
       <span class="section-label" data-i18n="show.label">In the app</span>
       <h2 data-i18n="show.title">A look around Warid.</h2>
       <p data-i18n="show.sub">Every screen is rendered in real HTML and CSS — exactly what you'll see after you install it.</p>
@@ -204,12 +204,12 @@
 
       <!-- 1. RECORDER -->
       <div class="showcase-row">
-        <div class="showcase-copy">
+        <div class="showcase-copy reveal">
           <span class="chip chip-accent" data-i18n="show.rec.tag">Home</span>
           <h3 data-i18n="show.rec.t">Record. Watch text appear.</h3>
           <p data-i18n="show.rec.d">A single circular button. Press it or use the hotkey. Output streams into the left panel while a pulse indicator and live waveform show that Warid is listening.</p>
         </div>
-        <div class="showcase-frame">
+        <div class="showcase-frame reveal delay-200">
           <div class="traffic"><span></span><span></span><span></span></div>
           <div class="frame-title" data-i18n="mk.rec.frame">Warid · Home</div>
           <div class="frame-inner">
@@ -261,12 +261,12 @@
 
       <!-- 2. ANALYTICS -->
       <div class="showcase-row reverse">
-        <div class="showcase-copy">
+        <div class="showcase-copy reveal delay-200">
           <span class="chip chip-accent" data-i18n="show.an.tag">Analytics</span>
           <h3 data-i18n="show.an.t">See how much you've spoken.</h3>
           <p data-i18n="show.an.d">Warid quietly counts every word you transcribe. A heatmap shows your active days, a progress bar tracks the next milestone, and a top-words list reveals what you actually talk about.</p>
         </div>
-        <div class="showcase-frame">
+        <div class="showcase-frame reveal">
           <div class="traffic"><span></span><span></span><span></span></div>
           <div class="frame-title" data-i18n="mk.an.frame">Warid · Analytics</div>
           <div class="frame-inner">
@@ -335,12 +335,12 @@
 
       <!-- 3. TEMPLATES -->
       <div class="showcase-row">
-        <div class="showcase-copy">
+        <div class="showcase-copy reveal">
           <span class="chip chip-accent" data-i18n="show.tpl.tag">Templates</span>
           <h3 data-i18n="show.tpl.t">One hotkey per use case.</h3>
           <p data-i18n="show.tpl.d">Make Warid do more than transcribe. Each template carries its own prompt, output language, model, and global hotkey — so the same voice clip can become a polished email or formatted code.</p>
         </div>
-        <div class="showcase-frame">
+        <div class="showcase-frame reveal delay-200">
           <div class="traffic"><span></span><span></span><span></span></div>
           <div class="frame-title" data-i18n="mk.tpl.frame">Warid · Templates</div>
           <div class="frame-inner">
@@ -409,12 +409,12 @@
 
       <!-- 4. SETTINGS -->
       <div class="showcase-row reverse">
-        <div class="showcase-copy">
+        <div class="showcase-copy reveal delay-200">
           <span class="chip chip-accent" data-i18n="show.set.tag">Settings</span>
           <h3 data-i18n="show.set.t">Everything you'd expect, nothing you wouldn't.</h3>
           <p data-i18n="show.set.d">Your Gemini key is stored in the OS keychain. Pick a model, change the language, switch theme, decide what to auto-copy — and you're done.</p>
         </div>
-        <div class="showcase-frame">
+        <div class="showcase-frame reveal">
           <div class="traffic"><span></span><span></span><span></span></div>
           <div class="frame-title" data-i18n="mk.set.frame">Warid · Settings</div>
           <div class="frame-inner">
@@ -497,12 +497,12 @@
 <!-- ============== FAQ ============== -->
 <section class="block" id="faq" style="padding-top:0;">
   <div class="container">
-    <div class="section-head">
+    <div class="section-head reveal">
       <span class="section-label" data-i18n="faq.label">Questions</span>
       <h2 data-i18n="faq.title">Frequently asked.</h2>
     </div>
 
-    <div class="faq-list">
+    <div class="faq-list reveal delay-200">
       <details class="faq-item" open>
         <summary class="faq-q">
           <span data-i18n="faq.q1">Is Warid really free?</span>
@@ -579,7 +579,7 @@
 <!-- ============== DOWNLOAD SECTION ============== -->
 <section class="download-section" id="download">
   <div class="container">
-    <div class="section-head">
+    <div class="section-head reveal">
       <span class="section-label" data-i18n="dl.label">Download</span>
       <h2 data-i18n="dl.title">Pick your platform.</h2>
       <p data-i18n="dl.sub">Free, open-source, ~10 MB. Drop in your Gemini API key and you're ready.</p>
@@ -587,7 +587,7 @@
 
     <div class="download-cards">
       <!-- Windows -->
-      <div class="download-card">
+      <div class="download-card reveal delay-100">
         <div class="dc-icon">
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M0 0h11.377v11.372H0zm12.623 0H24v11.372H12.623zM0 12.628h11.377V24H0zm12.623 0H24V24H12.623z"/></svg>
         </div>
@@ -604,7 +604,7 @@
       </div>
 
       <!-- macOS -->
-      <div class="download-card">
+      <div class="download-card reveal delay-200">
         <div class="dc-icon">
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg>
         </div>
@@ -621,7 +621,7 @@
       </div>
 
       <!-- Linux -->
-      <div class="download-card">
+      <div class="download-card reveal delay-300">
         <div class="dc-icon">
           <i data-lucide="terminal" stroke-width="1.75"></i>
         </div>

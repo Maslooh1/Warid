@@ -35,8 +35,6 @@ export function Recorder() {
   const { t, lang } = useLang();
   const abortRef = useRef(false);
   const outputTextareaRef = useRef<HTMLTextAreaElement>(null);
-  const stateRef = useRef(rs.state);
-  stateRef.current = rs.state;
   const hotkeyRef = useRef(false);
   const recordingTemplateRef = useRef<Template | null>(null);
   const activeModelIdRef = useRef<string>(settings.selectedModel);
@@ -71,6 +69,7 @@ export function Recorder() {
     abortRef.current = false;
     rs.setOutput("");
     rs.setState("processing");
+    const processingStart = Date.now();
     await showOverlay();
     await pushOverlayState({ state: "processing", paused: false, duration: 0 });
 
@@ -97,6 +96,8 @@ export function Recorder() {
           fullText += chunk;
         }
         if (abortRef.current) return;
+        const totalDurationMs = durationMs + (Date.now() - processingStart);
+        rs.setTotalDurationMs(totalDurationMs);
         rs.setState("done");
         playBeep("done");
         addLog("success", t("log_msg_ready"), t("log_msg_char_count", String(fullText.length)));
@@ -122,7 +123,7 @@ export function Recorder() {
             template_snapshot: JSON.stringify(template),
             model: activeModelIdRef.current,
             audio_path: null,
-            duration_ms: durationMs,
+            duration_ms: totalDurationMs,
             output_text: fullText,
             estimated_tokens: Math.floor(fullText.length / 4),
           });
@@ -150,7 +151,7 @@ export function Recorder() {
 
 
   const handleToggle = useCallback(async (isHotkey = false, templateOverride?: Template) => {
-    const state = stateRef.current;
+    const state = useRecordingStore.getState().state;
     if (state === "recording") {
       playBeep("stop");
       rs.setState("processing");
@@ -185,7 +186,7 @@ export function Recorder() {
   }, [processAudio, rs, getActive, activeTemplateId, setActive, addLog, t, settings.audioDeviceId]);
 
   const handlePauseToggle = useCallback(() => {
-    if (stateRef.current !== "recording") return;
+    if (useRecordingStore.getState().state !== "recording") return;
     if (rs.paused) {
       recorder.resume();
       rs.setPaused(false);
@@ -196,9 +197,10 @@ export function Recorder() {
   }, [rs]);
 
   const handleAbortRecording = useCallback(async () => {
-    if (stateRef.current === "recording") {
+    const state = useRecordingStore.getState().state;
+    if (state === "recording") {
       recorder.cancel();
-    } else if (stateRef.current === "processing") {
+    } else if (state === "processing") {
       abortRef.current = true;
     }
     rs.reset();
@@ -208,13 +210,10 @@ export function Recorder() {
   const handleToggleRef = useRef(handleToggle);
   useEffect(() => { handleToggleRef.current = handleToggle; }, [handleToggle]);
 
-  const templatesRef = useRef(templates);
-  templatesRef.current = templates;
-
   useEffect(() => {
     setCommandHotkeyHandler((accel) => {
       const norm = normalizeAccelerator(accel);
-      const tpl = templatesRef.current.find((tpl) => normalizeAccelerator(tpl.hotkey) === norm);
+      const tpl = useTemplatesStore.getState().templates.find((tpl) => normalizeAccelerator(tpl.hotkey) === norm);
       if (tpl) handleToggleRef.current(true, tpl);
     });
   }, []);
@@ -250,7 +249,8 @@ export function Recorder() {
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "x" && e.ctrlKey && e.altKey && (stateRef.current === "recording" || stateRef.current === "processing")) {
+      const state = useRecordingStore.getState().state;
+      if (e.key === "x" && e.ctrlKey && e.altKey && (state === "recording" || state === "processing")) {
         handleAbortRecording();
       }
     };
@@ -324,7 +324,7 @@ export function Recorder() {
                   />
                   {(() => {
                     const wordCount = rs.output.split(/\s+/).filter(Boolean).length;
-                    const minutes = rs.duration / 60000;
+                    const minutes = (rs.totalDurationMs ?? 0) / 60000;
                     const wpm = minutes > 0 ? Math.round(wordCount / minutes) : null;
                     return wpm !== null ? (
                       <div className="mt-2 text-right">

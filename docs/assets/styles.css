@@ -797,3 +797,19 @@ details[open] .faq-q .chev { transform: rotate(180deg); color: var(--accent); }
 .mk-rail [data-lucide] { width: 20px; height: 20px; }
 .mk-pageheader [data-lucide],
 .mk-set-section [data-lucide] { width: 16px; height: 16px; }
+
+/* ---------- Animations ---------- */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.reveal.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+.reveal.delay-100 { transition-delay: 0.1s; }
+.reveal.delay-200 { transition-delay: 0.2s; }
+.reveal.delay-300 { transition-delay: 0.3s; }
+.reveal.delay-400 { transition-delay: 0.4s; }
+.reveal.delay-500 { transition-delay: 0.5s; }

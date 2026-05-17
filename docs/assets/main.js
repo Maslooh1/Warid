@@ -35,7 +35,7 @@ const STRINGS = {
     'how.s1.d': 'Sign in with any Google account at Google AI Studio and copy your API key. The free tier covers most users entirely.',
     'how.s1.cta': 'Open AI Studio <i data-lucide="arrow-right" stroke-width="1.75" style="width:14px;height:14px;vertical-align:-2px;"></i>',
     'how.s2.t': 'Press the hotkey, talk',
-    'how.s2.d': 'Hit <span class="kbd">Ctrl</span> + <span class="kbd">Shift</span> + <span class="kbd">R</span> in any app. A tiny pill appears at the top of your screen. Pause, resume, or stop when done.',
+    'how.s2.d': 'Hit <span class="kbd">Ctrl</span> + <span class="kbd">Shift</span> + <span class="kbd">R</span> in any app. A tiny pill appears at the top of your screen. Stop the recording when done.',
     'how.s3.t': 'Get text, instantly',
     'how.s3.d': 'Your transcription streams in, gets auto-copied to your clipboard, and is saved to local history. Paste it anywhere.',
     'show.label': 'In the app',
@@ -174,7 +174,7 @@ const STRINGS = {
     'how.s1.d': 'سجّل دخولك بأي حساب Google في Google AI Studio وانسخ مفتاح API الخاص بك. الطبقة المجانية تكفي معظم المستخدمين تماماً.',
     'how.s1.cta': 'افتح AI Studio <i data-lucide="arrow-right" stroke-width="1.75" style="width:14px;height:14px;vertical-align:-2px;"></i>',
     'how.s2.t': 'اضغط الاختصار، تحدث',
-    'how.s2.d': 'اضغط <span class="kbd">Ctrl</span> + <span class="kbd">Shift</span> + <span class="kbd">R</span> في أي تطبيق. تظهر حبة صغيرة في أعلى شاشتك. توقّف، استأنف، أو أوقف عند الانتهاء.',
+    'how.s2.d': 'اضغط <span class="kbd">Ctrl</span> + <span class="kbd">Shift</span> + <span class="kbd">R</span> في أي تطبيق. تظهر حبة صغيرة في أعلى شاشتك. أوقف التسجيل عند الانتهاء.',
     'how.s3.t': 'احصل على النص فوراً',
     'how.s3.d': 'يتدفق نسخك، يُنسخ تلقائياً إلى الحافظة، ويُحفظ في السجل المحلي. الصقه في أي مكان.',
     'show.label': 'داخل التطبيق',
@@ -390,3 +390,33 @@ function applyRelease(data) {
   var linuxBtn = document.querySelector('.dl-btn-linux');
   if (linuxBtn) linuxBtn.href = urls.linuxAppImage || urls.linuxDeb || fallback;
 }
+
+// Reveal animations on scroll
+document.addEventListener('DOMContentLoaded', function() {
+  var revealElements = document.querySelectorAll('.reveal');
+  
+  if ('IntersectionObserver' in window) {
+    var revealObserver = new IntersectionObserver(function(entries, observer) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('active');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0.1
+    });
+
+    revealElements.forEach(function(el) {
+      revealObserver.observe(el);
+    });
+  } else {
+    // Fallback for older browsers
+    revealElements.forEach(function(el) {
+      el.classList.add('active');
+    });
+  }
+});
+
