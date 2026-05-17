@@ -1,0 +1,14 @@
+node_modules/
+dist/
+src-tauri/target/
+src-tauri/gen/
+.vscode/
+.idea/
+.claude/
+*.log
+.DS_Store
+Thumbs.db
+.env
+.env.local
+Start_Warid.bat
+mockups/

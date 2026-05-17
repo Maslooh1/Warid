@@ -1,0 +1,32 @@
+[package]
+name = "warid"
+version = "0.1.0"
+description = "Warid - Audio Transcription & Translation powered by Gemini"
+authors = ["Maslooh"]
+edition = "2021"
+
+[lib]
+name = "warid_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[[bin]]
+name = "warid"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = ["tray-icon", "image-ico", "image-png"] }
+tauri-plugin-sql = { version = "2", features = ["sqlite"] }
+tauri-plugin-store = "2"
+tauri-plugin-clipboard-manager = "2"
+tauri-plugin-global-shortcut = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+enigo = "0.2"
+tauri-plugin-opener = "2.5.4"
+tauri-plugin-autostart = "2"
+
+[target.'cfg(target_os = "windows")'.dependencies]
+windows = { version = "0.58", features = ["Win32_UI_WindowsAndMessaging", "Win32_Foundation"] }

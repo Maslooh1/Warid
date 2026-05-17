@@ -1,0 +1,10 @@
+{
+  "id": "translate-to-english",
+  "name": "Translate to English",
+  "icon": "Translate",
+  "color": "#16A34A",
+  "prompt_body": "Listen to the audio and translate it to clear, natural English. Preserve the speaker's meaning and tone. If the speaker mixes Arabic and English, translate everything into English. Do not transcribe the original — output only the English translation. Do not add commentary.",
+  "output_language": "en",
+  "model": null,
+  "is_default": 0
+}

@@ -1,0 +1,215 @@
+import Database from "@tauri-apps/plugin-sql";
+import { DEFAULT_TEMPLATES, type HistoryItem, type Template } from "../types";
+import type { MilestoneReport } from "./analyticsAI";
+
+export interface AnalyticsMilestone {
+  id: string;
+  created_at: number;
+  word_count_at: number;
+  summary: string; // JSON-serialised MilestoneReport
+  model: string;
+}
+
+export interface AnalyticsStats {
+  totalWords: number;
+  totalDurationMs: number;
+  totalSessions: number;
+  texts: string[];
+}
+
+export interface DailyActivity {
+  day: number;       // ms timestamp at local midnight for that day
+  words: number;
+  sessions: number;
+}
+
+let db: Awaited<ReturnType<typeof Database.load>> | null = null;
+
+async function getDb() {
+  if (!db) {
+    db = await Database.load("sqlite:warid.db");
+    await migrate(db);
+  }
+  return db;
+}
+
+async function migrate(db: Awaited<ReturnType<typeof Database.load>>) {
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS templates (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      icon TEXT DEFAULT 'Microphone',
+      color TEXT DEFAULT '#2563EB',
+      prompt_body TEXT NOT NULL,
+      output_language TEXT,
+      model TEXT,
+      hotkey TEXT,
+      is_default INTEGER DEFAULT 0,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+  `);
+
+  // Idempotent column adds for upgrades from earlier schemas.
+  try { await db.execute(`ALTER TABLE templates ADD COLUMN hotkey TEXT`); } catch { /* exists */ }
+
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS history (
+      id TEXT PRIMARY KEY,
+      created_at INTEGER NOT NULL,
+      template_id TEXT,
+      template_snapshot TEXT,
+      model TEXT NOT NULL,
+      audio_path TEXT,
+      duration_ms INTEGER,
+      output_text TEXT NOT NULL,
+      estimated_tokens INTEGER
+    );
+  `);
+
+  await db.execute(
+    `CREATE INDEX IF NOT EXISTS idx_history_created ON history(created_at DESC);`
+  );
+
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS analytics_milestones (
+      id TEXT PRIMARY KEY,
+      created_at INTEGER NOT NULL,
+      word_count_at INTEGER NOT NULL,
+      summary TEXT NOT NULL,
+      model TEXT NOT NULL
+    );
+  `);
+
+  await db.execute(
+    `CREATE INDEX IF NOT EXISTS idx_milestones_created ON analytics_milestones(created_at DESC);`
+  );
+
+  const now = Date.now();
+  for (const t of DEFAULT_TEMPLATES) {
+    // Seed defaults on first install only — never overwrite user edits on later starts.
+    await db.execute(
+      `INSERT INTO templates (id, name, icon, color, prompt_body, output_language, model, hotkey, is_default, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       ON CONFLICT(id) DO NOTHING`,
+      [t.id, t.name, t.icon, t.color, t.prompt_body, t.output_language, t.model, t.hotkey, t.is_default, now, now]
+    );
+  }
+}
+
+export async function getTemplates(): Promise<Template[]> {
+  const db = await getDb();
+  return db.select<Template[]>("SELECT * FROM templates ORDER BY is_default DESC, created_at ASC");
+}
+
+export async function upsertTemplate(t: Template): Promise<void> {
+  const db = await getDb();
+  await db.execute(
+    `INSERT INTO templates (id, name, icon, color, prompt_body, output_language, model, hotkey, is_default, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET
+       name=excluded.name, icon=excluded.icon, color=excluded.color,
+       prompt_body=excluded.prompt_body, output_language=excluded.output_language,
+       model=excluded.model, hotkey=excluded.hotkey,
+       updated_at=excluded.updated_at`,
+    [t.id, t.name, t.icon, t.color, t.prompt_body, t.output_language, t.model, t.hotkey, t.is_default, t.created_at, t.updated_at]
+  );
+}
+
+export async function deleteTemplate(id: string): Promise<void> {
+  const db = await getDb();
+  await db.execute("DELETE FROM templates WHERE id = ?", [id]);
+}
+
+export async function getHistory(limit = 50, offset = 0, search = ""): Promise<HistoryItem[]> {
+  const db = await getDb();
+  if (search) {
+    return db.select<HistoryItem[]>(
+      "SELECT * FROM history WHERE output_text LIKE ? ORDER BY created_at DESC LIMIT ? OFFSET ?",
+      [`%${search}%`, limit, offset]
+    );
+  }
+  return db.select<HistoryItem[]>(
+    "SELECT * FROM history ORDER BY created_at DESC LIMIT ? OFFSET ?",
+    [limit, offset]
+  );
+}
+
+export async function saveHistory(item: Omit<HistoryItem, never>): Promise<void> {
+  const db = await getDb();
+  await db.execute(
+    `INSERT INTO history (id, created_at, template_id, template_snapshot, model, audio_path, duration_ms, output_text, estimated_tokens)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [item.id, item.created_at, item.template_id, item.template_snapshot, item.model, item.audio_path, item.duration_ms, item.output_text, item.estimated_tokens]
+  );
+}
+
+export async function deleteHistoryItem(id: string): Promise<void> {
+  const db = await getDb();
+  await db.execute("DELETE FROM history WHERE id = ?", [id]);
+}
+
+export async function clearHistory(): Promise<void> {
+  const db = await getDb();
+  await db.execute("DELETE FROM history");
+}
+
+export async function getAnalyticsStats(): Promise<AnalyticsStats> {
+  const db = await getDb();
+  const rows = await db.select<{ output_text: string; duration_ms: number | null }[]>(
+    "SELECT output_text, duration_ms FROM history ORDER BY created_at ASC"
+  );
+  let totalWords = 0;
+  let totalDurationMs = 0;
+  const texts: string[] = [];
+  for (const row of rows) {
+    const wc = row.output_text.trim().split(/\s+/).filter(Boolean).length;
+    totalWords += wc;
+    totalDurationMs += row.duration_ms ?? 0;
+    texts.push(row.output_text);
+  }
+  return { totalWords, totalDurationMs, totalSessions: rows.length, texts };
+}
+
+export async function getDailyActivity(daysBack: number): Promise<DailyActivity[]> {
+  const db = await getDb();
+  const cutoff = Date.now() - daysBack * 86_400_000;
+  const rows = await db.select<{ created_at: number; output_text: string }[]>(
+    "SELECT created_at, output_text FROM history WHERE created_at >= ? ORDER BY created_at ASC",
+    [cutoff],
+  );
+  const map = new Map<number, { words: number; sessions: number }>();
+  for (const row of rows) {
+    const d = new Date(row.created_at);
+    d.setHours(0, 0, 0, 0);
+    const key = d.getTime();
+    const wc = row.output_text.trim().split(/\s+/).filter(Boolean).length;
+    const cur = map.get(key) ?? { words: 0, sessions: 0 };
+    cur.words += wc;
+    cur.sessions += 1;
+    map.set(key, cur);
+  }
+  return Array.from(map, ([day, v]) => ({ day, words: v.words, sessions: v.sessions }))
+    .sort((a, b) => a.day - b.day);
+}
+
+export async function saveAnalyticsMilestone(
+  id: string,
+  wordCountAt: number,
+  report: MilestoneReport,
+  model: string,
+): Promise<void> {
+  const db = await getDb();
+  await db.execute(
+    `INSERT OR IGNORE INTO analytics_milestones (id, created_at, word_count_at, summary, model)
+     VALUES (?, ?, ?, ?, ?)`,
+    [id, Date.now(), wordCountAt, JSON.stringify(report), model],
+  );
+}
+
+export async function getAnalyticsMilestones(): Promise<AnalyticsMilestone[]> {
+  const db = await getDb();
+  return db.select<AnalyticsMilestone[]>(
+    "SELECT * FROM analytics_milestones ORDER BY word_count_at ASC"
+  );
+}

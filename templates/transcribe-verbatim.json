@@ -1,0 +1,10 @@
+{
+  "id": "transcribe-verbatim",
+  "name": "Verbatim Transcription",
+  "icon": "Microphone",
+  "color": "#475569",
+  "prompt_body": "Transcribe the audio verbatim. Preserve every word the speaker says, including code-switching between Arabic and English. Do not paraphrase, summarize, or correct grammar. Add basic punctuation and paragraph breaks for readability. Do not add commentary. Output the transcription only.",
+  "output_language": null,
+  "model": null,
+  "is_default": 0
+}

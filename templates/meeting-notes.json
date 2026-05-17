@@ -1,0 +1,10 @@
+{
+  "id": "meeting-notes",
+  "name": "Meeting Notes",
+  "icon": "Notepad",
+  "color": "#0891B2",
+  "prompt_body": "Listen to the recording of a meeting or conversation and produce structured meeting notes.\n\nOutput format:\n\n## Summary\n<2-3 sentence overview>\n\n## Key Points\n- bullet list of the main points discussed\n\n## Decisions\n- bullet list of decisions made (if any)\n\n## Action Items\n- [ ] action — owner (if mentioned)\n\n## Open Questions\n- bullet list of unresolved items\n\nIgnore filler words and small talk. Be concise. If a section has nothing, omit it.",
+  "output_language": "en",
+  "model": null,
+  "is_default": 0
+}
