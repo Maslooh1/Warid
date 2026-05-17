@@ -342,7 +342,7 @@ function fetchRelease() {
   if (data) {
     applyRelease(data);
   } else {
-    fetch('https://api.github.com/repos/Maslooh1/Warid/releases/latest')
+    fetch('https://api.github.com/repos/MohamedMaslooh/Warid/releases/latest')
       .then(function(r) { return r.json(); })
       .then(function(data) {
         sessionStorage.setItem('warid_release', JSON.stringify(data));
@@ -350,7 +350,7 @@ function fetchRelease() {
       })
       .catch(function() {
         // fallback: link to releases page
-        var fallback = 'https://github.com/Maslooh1/Warid/releases/latest';
+        var fallback = 'https://github.com/MohamedMaslooh/Warid/releases/latest';
         document.querySelectorAll('.dl-btn-win, .dl-btn-mac, .dl-btn-linux').forEach(function(a) {
           a.href = fallback;
         });
@@ -376,7 +376,7 @@ function applyRelease(data) {
     else if (/\.deb$/i.test(n))       urls.linuxDeb = a.browser_download_url;
   });
 
-  var fallback = 'https://github.com/Maslooh1/Warid/releases/latest';
+  var fallback = 'https://github.com/MohamedMaslooh/Warid/releases/latest';
 
   var winBtn = document.querySelector('.dl-btn-win');
   if (winBtn) winBtn.href = urls.winExe || urls.winMsi || fallback;
