@@ -625,3 +625,84 @@
   .mk-rail { width: 48px; }
   .hero-overlay-wrap { min-height: 280px; }
 }
+
+@media (max-width: 640px) {
+  /* Hero fake window scales tighter on phones */
+  .hero-overlay-wrap { min-height: 240px; }
+  .hero-fake-window { max-width: 100%; }
+  .hero-fake-content { padding: 22px 18px 16px; gap: 10px; }
+  .hero-fake-content .mk-mic { width: 72px !important; height: 72px !important; }
+  .hero-fake-content .mk-mic svg { width: 26px; height: 26px; }
+  .hero-fake-window .traffic { padding: 10px 12px; }
+  .hero-fake-window .traffic span { width: 8px; height: 8px; }
+  .hero-overlay-pill-pos { padding: 12px 8px 14px; }
+  .mk-overlay { gap: 6px; padding: 6px 10px; font-size: 11px; }
+  .mk-overlay .rec-dot { width: 7px; height: 7px; }
+  .mk-overlay .ov-btn { width: 22px; height: 22px; border-radius: 6px; }
+  .mk-overlay .div { height: 12px; }
+
+  /* App mockup chrome */
+  .mockup { min-height: 320px; }
+  .mk-rail { width: 40px; padding: 10px 0; }
+  .mk-rail .mk-logo { width: 24px; height: 24px; margin-bottom: 8px; }
+  .mk-rail .nav-i { width: 30px; height: 30px; border-radius: 8px; }
+  .mk-rail .nav-i svg { width: 16px; height: 16px; }
+  .mk-rail .nav-i.active::after { left: -6px; width: 2px; height: 14px; }
+
+  .mk-pageheader {
+    height: auto;
+    min-height: 44px;
+    padding: 8px 12px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .mk-pageheader .ph-left { flex-wrap: wrap; gap: 6px; }
+  .mk-pageheader .ph-title { font-size: 13px; }
+  .mk-pageheader .chip { font-size: 10.5px; padding: 3px 8px; }
+  /* The "Transcribe · Ctrl Shift R" chip is too crowded for phone width; drop it */
+  .mk-pageheader .chip-accent { display: none; }
+
+  .mk-content { padding: 14px; }
+
+  /* Showcase frame chrome */
+  .showcase-frame::before { height: 28px; }
+  .showcase-frame .traffic { top: 9px; left: 12px; gap: 5px; }
+  .showcase-frame .traffic span { width: 8px; height: 8px; }
+  .showcase-frame .frame-title { font-size: 10.5px; top: 7px; }
+  .showcase-frame .frame-inner { padding-top: 28px; }
+
+  /* Recorder */
+  .mk-rec-output { padding: 14px; gap: 10px; }
+  .mk-rec-output .stats { gap: 10px; font-size: 10.5px; flex-wrap: wrap; }
+  .mk-rec-text { padding: 12px; font-size: 12.5px; min-height: 110px; line-height: 1.65; }
+  .mk-rec-side { padding: 14px; gap: 10px; }
+  .mk-mic { width: 64px; height: 64px; }
+  .mk-mic svg { width: 24px; height: 24px; }
+  .mk-rec-side .duration { font-size: 18px; }
+  .mk-rec-side .label { font-size: 11px; }
+
+  /* Analytics */
+  .mk-an-hero { padding: 14px; }
+  .mk-an-big { font-size: 32px; }
+  .mk-an-big small { font-size: 12px; }
+  .mk-an-stats { grid-template-columns: 1fr; gap: 8px; }
+  .mk-an-stat { padding: 12px; }
+  .mk-an-stat .v { font-size: 17px; }
+  .mk-heatmap { padding: 12px; }
+  .mk-heatmap .hm-grid { grid-template-columns: repeat(13, 1fr); gap: 2px; }
+
+  /* Templates */
+  .mk-tpl-list { padding: 6px; }
+  .mk-tpl-item { padding: 8px 10px; font-size: 12px; }
+  .mk-tpl-item .hk { font-size: 10px; }
+  .mk-tpl-form { padding: 14px; gap: 10px; }
+  .mk-row { grid-template-columns: 1fr; gap: 8px; }
+  .mk-input, .mk-select { padding: 8px 10px; font-size: 12px; }
+  .mk-textarea { padding: 9px 10px; font-size: 12px; min-height: 64px; }
+
+  /* Settings */
+  .mk-settings { gap: 14px; }
+  .mk-set-section { padding: 12px 14px; }
+  .mk-set-section h4 { font-size: 12.5px; margin-bottom: 10px; }
+  .mk-set-row { font-size: 12px; padding: 7px 0; }
+}

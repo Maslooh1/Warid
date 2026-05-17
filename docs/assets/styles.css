@@ -100,6 +100,9 @@ button { font-family: inherit; }
   margin: 0 auto;
   padding: 0 24px;
 }
+@media (max-width: 540px) {
+  .container { padding: 0 16px; }
+}
 
 /* ---------- Header ---------- */
 .site-header {
@@ -782,13 +785,55 @@ details[open] .faq-q .chev { transform: rotate(180deg); color: var(--accent); }
   .cta-strip-inner { flex-direction: column; align-items: flex-start; padding: 32px; }
   .header-nav { display: none; }
 }
-@media (max-width: 540px) {
-  .hero { padding: 56px 0 40px; }
-  .hero h1 { font-size: 34px; }
-  .section-head h2 { font-size: 28px; }
-  section.block { padding: 64px 0; }
-  .features-grid { grid-template-columns: 1fr; }
-  .hero-ctas { grid-template-columns: 1fr; }
+@media (max-width: 640px) {
+  .site-header-inner { height: 56px; }
+  .brand { font-size: 15px; gap: 8px; }
+  .brand-icon { width: 24px; height: 24px; }
+  .header-tools { gap: 6px; }
+  .icon-btn { width: 32px; height: 32px; border-radius: 8px; }
+  .lang-pill { font-size: 11px; padding: 2px; }
+  .lang-pill button { padding: 3px 8px; }
+
+  .hero { padding: 48px 0 32px; }
+  .hero h1 { font-size: 36px; line-height: 1.15; margin-bottom: 18px; }
+  .hero p.lead { font-size: 15.5px; margin-bottom: 24px; }
+  .hero-eyebrow { font-size: 11px; padding: 5px 12px 5px 6px; margin-bottom: 18px; }
+  .hero-ctas { flex-wrap: wrap; gap: 10px; }
+  .hero-ctas .btn-primary.btn-lg { width: 100%; padding: 14px 22px; }
+  .hero-platforms { width: 100%; text-align: center; font-size: 12px; }
+  .hero-meta { flex-wrap: wrap; row-gap: 6px; font-size: 12px; }
+
+  .section-head { margin-bottom: 36px; }
+  .section-head h2 { font-size: 26px; }
+  .section-head p { font-size: 14.5px; }
+  section.block { padding: 56px 0; }
+
+  .features-grid { grid-template-columns: 1fr; gap: 12px; }
+  .feature-card { padding: 18px; }
+
+  .steps { gap: 14px; }
+  .step-card { padding: 22px; }
+  .step-card h3 { font-size: 16px; }
+
+  .showcase-block { padding-bottom: 70px; }
+  .showcase-stack { gap: 36px; }
+  .showcase-copy h3 { font-size: 22px; }
+  .showcase-copy p { font-size: 14px; }
+
+  .download-section { padding: 56px 0; }
+  .download-card { padding: 22px 18px; }
+
+  .faq-q { padding: 16px 18px; font-size: 14px; gap: 10px; }
+  .faq-a { padding: 0 18px 18px; font-size: 13.5px; }
+
+  .site-footer { padding: 28px 0; }
+  .footer-inner { flex-direction: column; align-items: flex-start; gap: 12px; font-size: 12.5px; }
+  .footer-links { flex-wrap: wrap; gap: 14px; }
+}
+@media (max-width: 400px) {
+  .hero h1 { font-size: 30px; }
+  .section-head h2 { font-size: 22px; }
+  .showcase-copy h3 { font-size: 19px; }
 }
 
 /* lucide icons rendered into <i data-lucide="..."> get this default size */
