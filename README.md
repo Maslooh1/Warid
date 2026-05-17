@@ -1,12 +1,12 @@
 # Warid (وارِد)
 
-**[Website](https://maslooh1.github.io/Warid/) · [Releases](https://github.com/mohamedmaslooh/Warid/releases) · [Issues](https://github.com/mohamedmaslooh/Warid/issues)**
+**[Website](https://mohamedmaslooh.github.io/Warid/)) · [Releases](https://github.com/mohamedmaslooh/Warid/releases) · [Issues](https://github.com/mohamedmaslooh/Warid/issues)**
 
 Open-source desktop app that records your voice and sends it directly to Google Gemini for transcription, translation, or any custom output you define via prompt templates.
 
 Gemini is natively multimodal and understands virtually every spoken language in the world. Speak in Arabic, English, French, Japanese, Spanish, or any other language, and Warid will produce text in whatever language and format your template specifies. The language behavior is entirely up to you.
 
-Visit the [website](https://maslooh1.github.io/Warid/) for a visual overview and direct download links.
+Visit the [website](https://mohamedmaslooh.github.io/Warid/) for a visual overview and direct download links.
 
 ## Features
 
@@ -24,7 +24,7 @@ Visit the [website](https://maslooh1.github.io/Warid/) for a visual overview and
 
 ## Installation
 
-Download from the [website](https://maslooh1.github.io/Warid/) or directly from the [Releases page](https://github.com/mohamedmaslooh/Warid/releases):
+Download from the [website](https://mohamedmaslooh.github.io/Warid/) or directly from the [Releases page](https://github.com/mohamedmaslooh/Warid/releases):
 
 | Platform | File |
 |----------|------|
