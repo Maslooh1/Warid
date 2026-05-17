@@ -87,11 +87,15 @@ jobs:
         with:
           script: |
             const tag = '${{ needs.auto-tag.outputs.new_tag }}';
-            const { data: release } = await github.rest.repos.getReleaseByTag({
+            const releases = await github.paginate(github.rest.repos.listReleases, {
               owner: context.repo.owner,
               repo: context.repo.repo,
-              tag,
+              per_page: 100,
             });
+            const release = releases.find(r => r.tag_name === tag);
+            if (!release) {
+              throw new Error(`No release found for tag ${tag}`);
+            }
             await github.rest.repos.updateRelease({
               owner: context.repo.owner,
               repo: context.repo.repo,
