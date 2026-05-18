@@ -336,11 +336,12 @@ function applyLang(lang) {
 })();
 
 function fetchRelease() {
+  var CACHE_TTL = 30 * 60 * 1000; // 30 minutes
   var cached = sessionStorage.getItem('warid_release');
   if (cached) {
     try {
       var data = JSON.parse(cached);
-      if (data && data.tag_name && Array.isArray(data.assets)) {
+      if (data && data.tag_name && Array.isArray(data.assets) && (Date.now() - (data._ts || 0)) < CACHE_TTL) {
         applyRelease(data);
         return;
       }
@@ -359,7 +360,7 @@ function fetchRelease() {
       if (!data || !data.tag_name || !Array.isArray(data.assets)) {
         throw new Error('Malformed release payload');
       }
-      sessionStorage.setItem('warid_release', JSON.stringify(data));
+      sessionStorage.setItem('warid_release', JSON.stringify(Object.assign({ _ts: Date.now() }, data)));
       applyRelease(data);
     })
     .catch(function() {
