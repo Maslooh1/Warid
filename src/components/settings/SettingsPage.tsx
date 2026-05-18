@@ -4,6 +4,7 @@ import { Eye, EyeOff, Save } from "lucide-react";
 import { useSettingsStore } from "../../stores/settingsStore";
 import { KNOWN_MODELS } from "../../lib/gemini";
 import { Select } from "../ui/Select";
+import { HotkeyField } from "../ui/HotkeyField";
 import { useLang } from "../../lib/useLang";
 import { setLaunchOnStartup } from "../../lib/autostart";
 
@@ -26,6 +27,7 @@ export function SettingsPage() {
   const [theme, setTheme] = useState(settings.theme);
   const [uiLanguage, setUiLanguage] = useState(settings.uiLanguage);
   const [launchOnStartup, setLaunchOnStartupState] = useState(settings.launchOnStartup);
+  const [cancelHotkey, setCancelHotkey] = useState<string | null>(settings.cancelHotkey || null);
   const [appVersion, setAppVersion] = useState("");
 
   useEffect(() => {
@@ -35,7 +37,7 @@ export function SettingsPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     await setLaunchOnStartup(launchOnStartup).catch(() => {});
-    await update({ apiKey, openRouterApiKey, selectedModel, autoCopy, saveHistory, logsEnabled, theme, uiLanguage, launchOnStartup });
+    await update({ apiKey, openRouterApiKey, selectedModel, autoCopy, saveHistory, logsEnabled, theme, uiLanguage, launchOnStartup, cancelHotkey: cancelHotkey ?? "" });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -49,16 +51,16 @@ export function SettingsPage() {
 
   const QuotaBadge = ({ quota }: { quota: (typeof KNOWN_MODELS)[number]["quota"] }) => {
     if (quota.type === "paid") {
-      return <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "rgba(239,68,68,0.15)", color: "#f87171" }}>Paid</span>;
+      return <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "rgba(239,68,68,0.15)", color: "#f87171" }}>{t("set_quota_paid")}</span>;
     }
     if (quota.type === "free_or_paid") {
       return (
         <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "rgba(34,197,94,0.12)", color: "#4ade80" }}>
-          {quota.freeRpd} free · {quota.paidRpd.toLocaleString()} paid /day
+          {t("set_quota_free_or_paid", quota.freeRpd.toString(), quota.paidRpd.toLocaleString())}
         </span>
       );
     }
-    return <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "rgba(34,197,94,0.12)", color: "#4ade80" }}>{quota.rpd} free /day</span>;
+    return <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "rgba(34,197,94,0.12)", color: "#4ade80" }}>{t("set_quota_free", quota.rpd.toString())}</span>;
   };
 
   const tabs: { id: Tab; label: string }[] = [
@@ -225,6 +227,13 @@ export function SettingsPage() {
                 </div>
                 <input type="checkbox" checked={launchOnStartup} onChange={(e) => setLaunchOnStartupState(e.target.checked)} className="w-4 h-4" style={{ accentColor: "var(--accent)" }} />
               </label>
+              <div className="space-y-1">
+                <div>
+                  <span className="text-sm" style={{ color: "var(--text)" }}>{t("set_cancel_hotkey")}</span>
+                  <p className="text-xs" style={{ color: "var(--muted)" }}>{t("set_cancel_hotkey_hint")}</p>
+                </div>
+                <HotkeyField value={cancelHotkey} onChange={setCancelHotkey} />
+              </div>
             </section>
 
             <section className="space-y-3">
@@ -297,6 +306,19 @@ export function SettingsPage() {
                   style={{ color: "var(--accent)" }}
                 >
                   github.com/mohamedmaslooh
+                </a>
+              </div>
+              <div style={{ height: 1, background: "var(--border)" }} />
+              <div className="flex items-center justify-between">
+                <span className="text-sm" style={{ color: "var(--muted)" }}>{t("set_about_website")}</span>
+                <a
+                  href="https://mohamedmaslooh.github.io/Warid/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm underline"
+                  style={{ color: "var(--accent)" }}
+                >
+                  mohamedmaslooh.github.io/Warid
                 </a>
               </div>
             </div>

@@ -65,6 +65,9 @@ jobs:
 
       - run: npm ci
 
+      - name: Sync version to tauri.conf.json
+        run: node -e "const fs=require('fs');const c=JSON.parse(fs.readFileSync('src-tauri/tauri.conf.json','utf8'));c.version='${{ needs.auto-tag.outputs.new_tag }}'.replace(/^v/,'');fs.writeFileSync('src-tauri/tauri.conf.json',JSON.stringify(c,null,2)+'\n');"
+
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

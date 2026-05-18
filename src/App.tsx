@@ -14,12 +14,19 @@ import { useSettingsStore } from "./stores/settingsStore";
 import { useTemplatesStore } from "./stores/templatesStore";
 import { ControlBar } from "./components/recording/ControlBar";
 import { UpdateBanner } from "./components/layout/UpdateBanner";
+import { MilestoneBanner } from "./components/layout/MilestoneBanner";
 import { fetchLatestVersion, isNewer } from "./lib/updateCheck";
+import { useAnalyticsStore } from "./stores/analyticsStore";
+import { syncCancelHotkey } from "./lib/cancelHotkey";
+import { formatAccelerator } from "./lib/hotkey";
+import { useLang } from "./lib/useLang";
 
 export default function App() {
   const isOverlay = new URLSearchParams(window.location.search).has("overlay");
   const { load: loadSettings, settings, loaded, update } = useSettingsStore();
   const { load: loadTemplates, activeTemplateId, templates } = useTemplatesStore();
+  const { celebrateMilestone, timeSavedMin, clearCelebrateMilestone } = useAnalyticsStore();
+  const { t } = useLang();
   const [welcomeDone, setWelcomeDone] = useState(false);
   const [updateVersion, setUpdateVersion] = useState<string | null>(null);
   const [updateDismissed, setUpdateDismissed] = useState(false);
@@ -59,6 +66,12 @@ export default function App() {
     invoke("update_tray_language", { lang: settings.uiLanguage }).catch(() => {});
   }, [loaded, settings.uiLanguage, isOverlay]);
 
+  // Register (or re-register) the global cancel hotkey whenever it changes.
+  useEffect(() => {
+    if (!loaded || isOverlay) return;
+    void syncCancelHotkey(settings.cancelHotkey);
+  }, [loaded, settings.cancelHotkey, isOverlay]);
+
   // Apply theme
   useEffect(() => {
     const html = document.documentElement;
@@ -95,6 +108,24 @@ export default function App() {
         style={{ background: "var(--bg)", color: "var(--text)" }}
         dir={settings.uiLanguage === "en" ? "ltr" : "rtl"}
       >
+        {/* Floating toast stack — fixed top-center, above all content */}
+        {!showWelcome && !isOverlay && (updateVersion && !updateDismissed || !!celebrateMilestone) && (
+          <div
+            className="fixed flex flex-col gap-2 z-50 items-center"
+            style={{ top: 12, left: "50%", transform: "translateX(-50%)" }}
+          >
+            {updateVersion && !updateDismissed && (
+              <UpdateBanner version={updateVersion} onDismiss={() => setUpdateDismissed(true)} />
+            )}
+            {celebrateMilestone && (
+              <MilestoneBanner
+                milestone={celebrateMilestone}
+                timeSavedMin={timeSavedMin}
+                onDismiss={clearCelebrateMilestone}
+              />
+            )}
+          </div>
+        )}
         {showWelcome ? (
           <Welcome
             startAtKey={!settings.firstRun}
@@ -104,8 +135,23 @@ export default function App() {
           <>
             <Sidebar />
             <main className="flex-1 flex flex-col overflow-hidden">
-              {updateVersion && !updateDismissed && (
-                <UpdateBanner version={updateVersion} onDismiss={() => setUpdateDismissed(true)} />
+              {loaded && !settings.seenCancelHotkey && (
+                <div
+                  className="flex items-center justify-between gap-3 px-4 py-2 text-sm shrink-0"
+                  style={{ background: "var(--surface-2)", borderBottom: "1px solid var(--border)" }}
+                >
+                  <span style={{ color: "var(--text-2)" }}>
+                    {t("feat_cancel_tip", formatAccelerator(settings.cancelHotkey))}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => update({ seenCancelHotkey: true })}
+                    className="shrink-0 text-xs font-semibold px-3 py-0.5 rounded-full"
+                    style={{ background: "var(--accent-soft)", color: "var(--accent)" }}
+                  >
+                    {t("feat_cancel_got_it")}
+                  </button>
+                </div>
               )}
               <Routes>
                 <Route path="/" element={<Recorder />} />

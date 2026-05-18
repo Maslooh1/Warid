@@ -1,6 +1,9 @@
-import { useRef, useCallback, useEffect, useState } from "react";
-import { Mic, Square, RefreshCw, Copy, Terminal, Clock, Zap } from "lucide-react";
-import { AudioRecorder, formatDuration, playBeep } from "../../lib/audio";
+import { useRef, useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { Mic, Square, RefreshCw, Copy, Terminal, Clock, Zap, Share2 } from "lucide-react";
+import { formatDuration, playBeep } from "../../lib/audio";
+import { recorder } from "../../lib/sharedRecorder";
+import { abortSignal, clearAbortSignal } from "../../lib/recordingAbort";
+import { doCancel } from "../../lib/cancelHotkey";
 import { streamAudio, KNOWN_MODELS } from "../../lib/gemini";
 import { useRecordingStore } from "../../stores/recordingStore";
 import { useSettingsStore } from "../../stores/settingsStore";
@@ -24,8 +27,6 @@ function getTemplateName(tpl: { name: string; name_en?: string }, lang: string):
 }
 
 
-const recorder = new AudioRecorder();
-
 export function Recorder() {
   const rs = useRecordingStore();
   const { refresh: refreshAnalytics } = useAnalyticsStore();
@@ -33,13 +34,12 @@ export function Recorder() {
   const { active: getActive, templates, activeTemplateId, setActive } = useTemplatesStore();
   const { addLog } = useLogStore();
   const { t, lang } = useLang();
-  const abortRef = useRef(false);
   const outputTextareaRef = useRef<HTMLTextAreaElement>(null);
   const hotkeyRef = useRef(false);
   const recordingTemplateRef = useRef<Template | null>(null);
   const activeModelIdRef = useRef<string>(settings.selectedModel);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = outputTextareaRef.current;
     if (!el) return;
     const resize = () => {
@@ -66,7 +66,7 @@ export function Recorder() {
       return;
     }
 
-    abortRef.current = false;
+    clearAbortSignal();
     rs.setOutput("");
     rs.setState("processing");
     const processingStart = Date.now();
@@ -78,24 +78,24 @@ export function Recorder() {
     let lastError: string | null = null;
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-      if (abortRef.current) return;
+      if (abortSignal.current) return;
 
       try {
         if (attempt > 1) {
           addLog("warn", t("log_msg_retry", String(attempt), String(MAX_ATTEMPTS)));
           rs.setOutput("");
           await new Promise((r) => setTimeout(r, 1000));
-          if (abortRef.current) return;
+          if (abortSignal.current) return;
         }
 
         let fullText = "";
         const iterator = streamAudio(settings, template, base64, mimeType, addLog);
         for await (const chunk of iterator) {
-          if (abortRef.current) break;
+          if (abortSignal.current) break;
           rs.appendOutput(chunk);
           fullText += chunk;
         }
-        if (abortRef.current) return;
+        if (abortSignal.current) return;
         const totalDurationMs = durationMs + (Date.now() - processingStart);
         rs.setTotalDurationMs(totalDurationMs);
         rs.setState("done");
@@ -133,7 +133,7 @@ export function Recorder() {
         await hideOverlay();
         return; // success — exit the retry loop
       } catch (err) {
-        if (abortRef.current) return;
+        if (abortSignal.current) return;
         lastError = err instanceof Error ? err.message : String(err);
         addLog("warn", t("log_msg_retry_failed", String(attempt)), lastError);
       }
@@ -196,17 +196,7 @@ export function Recorder() {
     }
   }, [rs]);
 
-  const handleAbortRecording = useCallback(async () => {
-    const state = useRecordingStore.getState().state;
-    if (state === "recording") {
-      recorder.cancel();
-    } else if (state === "processing") {
-      abortRef.current = true;
-    }
-    playBeep("cancel");
-    rs.reset();
-    await hideOverlay();
-  }, [rs]);
+  const handleAbortRecording = useCallback(() => { void doCancel(); }, []);
 
   const handleToggleRef = useRef(handleToggle);
   useEffect(() => { handleToggleRef.current = handleToggle; }, [handleToggle]);
@@ -246,18 +236,7 @@ export function Recorder() {
     };
   }, []);
 
-  const handleCancel = useCallback(() => { handleAbortRecording(); }, [handleAbortRecording]);
-
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      const state = useRecordingStore.getState().state;
-      if (e.key === "x" && e.ctrlKey && e.altKey && (state === "recording" || state === "processing")) {
-        handleAbortRecording();
-      }
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, [handleAbortRecording]);
+  const handleCancel = useCallback(() => { void doCancel(); }, []);
 
   const handleRegenerate = useCallback(async () => {
     if (!rs.lastResult) return;
@@ -406,6 +385,7 @@ export function Recorder() {
               })}
             </div>
           </div>
+          <ShareButton />
         </div>
       </div>
     </div>
@@ -556,6 +536,37 @@ function StatsBanner() {
         <strong style={{ color: "var(--accent)", fontFamily: '"Inter", system-ui' }}>{totalWords.toLocaleString()}</strong>
         {lang === "ar" ? " كلمة" : " words"}
       </span>
+    </div>
+  );
+}
+
+const SHARE_URL = "https://mohamedmaslooh.github.io/Warid/";
+
+function ShareButton() {
+  const { lang } = useLang();
+  const [copied, setCopied] = useState(false);
+  const handleShare = async () => {
+    await writeText(SHARE_URL);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
+  return (
+    <div className="shrink-0 px-4 pb-4 pt-2">
+      <button
+        onClick={handleShare}
+        className="w-full flex items-center justify-center gap-2 py-2.5 px-4 text-sm font-semibold transition-all hover:scale-[1.02] active:scale-[0.98]"
+        style={{
+          borderRadius: 12,
+          border: "1px solid var(--border)",
+          background: copied ? "var(--accent-soft)" : "var(--surface-2)",
+          color: copied ? "var(--accent)" : "var(--text-2)",
+        }}
+      >
+        <Share2 size={14} strokeWidth={2} />
+        {copied
+          ? (lang === "ar" ? "✓ تم النسخ!" : "✓ Copied!")
+          : (lang === "ar" ? "شارك التطبيق مع أصدقائك" : "Share with your friends")}
+      </button>
     </div>
   );
 }

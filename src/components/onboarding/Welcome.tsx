@@ -11,10 +11,12 @@ import {
   Sun,
   Moon,
   Mic,
+  XCircle,
 } from "lucide-react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useSettingsStore } from "../../stores/settingsStore";
 import { useLang } from "../../lib/useLang";
+import { formatAccelerator } from "../../lib/hotkey";
 import type { Lang } from "../../lib/i18n";
 import type { Settings } from "../../types";
 
@@ -80,6 +82,7 @@ export function Welcome({ startAtKey = false, onComplete }: Props) {
               lang={settings.uiLanguage}
               theme={settings.theme}
               audioDeviceId={settings.audioDeviceId}
+              cancelHotkey={settings.cancelHotkey}
               onPickLang={(l) => update({ uiLanguage: l })}
               onPickTheme={(th) => update({ theme: th })}
               onPickMic={(id) => update({ audioDeviceId: id })}
@@ -139,6 +142,7 @@ interface PreferencesProps {
   lang: Lang;
   theme: Settings["theme"];
   audioDeviceId: string;
+  cancelHotkey: string;
   onPickLang: (l: Lang) => void;
   onPickTheme: (t: Settings["theme"]) => void;
   onPickMic: (id: string) => void;
@@ -151,6 +155,7 @@ function PreferencesStep({
   lang,
   theme,
   audioDeviceId,
+  cancelHotkey,
   onPickLang,
   onPickTheme,
   onPickMic,
@@ -257,6 +262,17 @@ function PreferencesStep({
           value={audioDeviceId}
           onChange={onPickMic}
         />
+      </div>
+
+      {/* Cancel shortcut tip */}
+      <div
+        className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
+        style={{ background: "var(--surface)", border: "1px solid var(--border)" }}
+      >
+        <XCircle size={16} strokeWidth={1.75} style={{ color: "var(--muted)", flexShrink: 0 }} />
+        <p className="text-xs" style={{ color: "var(--text-2)" }}>
+          {t("ob_cancel_tip", formatAccelerator(cancelHotkey))}
+        </p>
       </div>
 
       {/* Continue */}

@@ -40,15 +40,13 @@ export const translations = {
     hist_clear:    "مسح الكل",
     hist_search:   "بحث في النصوص...",
     hist_empty:    "لا يوجد سجل",
-    hist_deleted:  "قالب محذوف",
+    hist_deleted:  "أمر محذوف",
     hist_select:   "اختر عنصراً من القائمة",
     hist_disabled: "السجل معطّل من الإعدادات",
     hist_delete:   "حذف",
 
-    // Templates page
+    // Commands page
     tpl_title:       "الأوامر",
-    tpl_import:      "استيراد",
-    tpl_export:      "تصدير",
     tpl_new:         "أمر جديد",
     tpl_view:        "عرض الأمر",
     tpl_name:        "اسم الأمر",
@@ -85,6 +83,8 @@ export const translations = {
     set_logs_hint:     "تسجيل تفاصيل كل عملية تفريغ، مرئية من صفحة Logs",
     set_launch_startup:      "التشغيل عند بدء النظام",
     set_launch_startup_hint: "فتح وارِد تلقائياً عند تشغيل الكمبيوتر",
+    set_cancel_hotkey:       "اختصار إلغاء التسجيل",
+    set_cancel_hotkey_hint:  "يوقف التسجيل أو المعالجة الجارية من أي شاشة.",
     set_appearance:    "المظهر",
     set_theme_auto:    "تلقائي (حسب النظام)",
     set_theme_light:   "فاتح",
@@ -101,17 +101,35 @@ export const translations = {
     set_tab_prefs:     "التفضيلات",
     set_tab_about:     "عن البرنامج",
 
+    // Quota Badges
+    set_quota_paid:         "مدفوع",
+    set_quota_free:         "{0} طلب مجاني في اليوم",
+    set_quota_free_or_paid: "{0} طلب مجاني · {1} مدفوع / يوم",
+
     // About section
     set_about_developer: "المطوّر",
     set_about_github:    "الملف على GitHub",
+    set_about_website:   "الموقع الإلكتروني",
     set_about_version:   "الإصدار",
-    set_about_desc:      "سجّل صوتك واحصل على نص ذكي — فرّغ، ترجم، أو نفّذ أي أمر بالذكاء الاصطناعي عبر قوالب مخصصة، مدعوم بـ Google Gemini.",
+    set_about_desc:      "سجّل صوتك واحصل على نص ذكي — فرّغ، ترجم، أو نفّذ أي أمر بالذكاء الاصطناعي عبر أوامر مخصصة، مدعوم بـ Google Gemini.",
 
     // Update banner
+    feat_cancel_tip:    "جديد · يمكنك الآن إلغاء التسجيل من أي شاشة بالضغط على {0}",
+    feat_cancel_got_it: "فهمت",
+    ob_cancel_tip:      "اضغط {0} لإلغاء أي تسجيل نشط من أي شاشة",
+
     upd_available: "تحديث جديد متاح",
     upd_desc:      "الإصدار {0} جاهز للتحميل",
     upd_download:  "تحميل",
     upd_dismiss:   "تجاهل",
+
+    // Milestone celebration banner
+    ms_banner_title: "أنجزت {0} كلمة!",
+    ms_banner_body:  "وفَّرت {0} مقارنةً بالكتابة — شارك وارِد مع صديق ليوفِّر هو الآخر وقته.",
+    ms_banner_body_simple: "وفَّرت {0} مقارنةً بالكتابة.",
+    ms_banner_share: "شارك مع صديق",
+    ms_banner_copied: "تم نسخ الرابط!",
+    ms_banner_share_text: "استخدم وارِد للإملاء بصوتك وتوفير الوقت بدلاً من الكتابة اليدوية.\nhttps://mohamedmaslooh.github.io/Warid/",
 
     // Logs page
     logs_title:    "Logs",
@@ -207,7 +225,7 @@ export const translations = {
     ob_title:         "مرحباً بك في وارِد",
     ob_sub:           "مساعدك الذكي للتفريغ الصوتي وتنفيذ الأوامر بصوتك",
     ob_about_t:       "ما هو وارِد؟",
-    ob_about_b:       "وارِد تطبيق يحوّل صوتك إلى نصوص ذكية فوراً. سجّل ملاحظاتك أو اضغط اختصاراً مخصصاً وسيتولى وارِد التفريغ والتنسيق وحتى تنفيذ الأوامر: تلخيص، ترجمة، صياغة بريد، أو أي قالب تنشئه بنفسك.",
+    ob_about_b:       "وارِد تطبيق يحوّل صوتك إلى نصوص ذكية فوراً. سجّل ملاحظاتك أو اضغط اختصاراً مخصصاً وسيتولى وارِد التفريغ والتنسيق وحتى تنفيذ الأوامر: تلخيص، ترجمة، صياغة بريد، أو أي أمر تنشئه بنفسك.",
     ob_pick_lang:     "اللغة",
     ob_pick_theme:    "المظهر",
     ob_pick_mic:      "الميكروفون",
@@ -277,14 +295,12 @@ export const translations = {
     hist_clear:    "Clear All",
     hist_search:   "Search texts...",
     hist_empty:    "No history yet",
-    hist_deleted:  "Deleted template",
+    hist_deleted:  "Deleted command",
     hist_select:   "Select an item from the list",
     hist_disabled: "History is disabled in settings",
     hist_delete:   "Delete",
 
     tpl_title:       "Commands",
-    tpl_import:      "Import",
-    tpl_export:      "Export",
     tpl_new:         "New Command",
     tpl_view:        "View Command",
     tpl_name:        "Command Name",
@@ -320,6 +336,8 @@ export const translations = {
     set_logs_hint:     "Log details of each transcription, visible from the Logs page",
     set_launch_startup:      "Launch on startup",
     set_launch_startup_hint: "Open Warid automatically when your computer starts",
+    set_cancel_hotkey:       "Cancel Recording Shortcut",
+    set_cancel_hotkey_hint:  "Stops active recording or processing from any screen.",
     set_appearance:    "Appearance",
     set_theme_auto:    "Auto (system)",
     set_theme_light:   "Light",
@@ -336,17 +354,35 @@ export const translations = {
     set_tab_prefs:     "Preferences",
     set_tab_about:     "About",
 
+    // Quota Badges
+    set_quota_paid:         "Paid",
+    set_quota_free:         "{0} free /day",
+    set_quota_free_or_paid: "{0} free · {1} paid /day",
+
     // About section
     set_about_developer: "Developer",
     set_about_github:    "GitHub Profile",
+    set_about_website:   "Website",
     set_about_version:   "Version",
-    set_about_desc:      "Record your voice, get smart text — transcribe, translate, or run any AI command via custom templates, powered by Google Gemini.",
+    set_about_desc:      "Record your voice, get smart text — transcribe, translate, or run any AI command via custom commands, powered by Google Gemini.",
 
     // Update banner
+    feat_cancel_tip:    "New · Cancel active recording from any screen with {0}",
+    feat_cancel_got_it: "Got it",
+    ob_cancel_tip:      "Press {0} to cancel any active recording from any screen",
+
     upd_available: "Update available",
     upd_desc:      "Version {0} is ready to download",
     upd_download:  "Download",
     upd_dismiss:   "Dismiss",
+
+    // Milestone celebration banner
+    ms_banner_title: "{0} words — nice work!",
+    ms_banner_body:  "You've saved {0} vs. typing. Know someone who'd love that time back? Share Warid!",
+    ms_banner_body_simple:  "You've saved {0} vs. typing.",
+    ms_banner_share: "Share with a Friend",
+    ms_banner_copied: "Link copied!",
+    ms_banner_share_text: "Use Warid to dictate and save time instead of typing.\nhttps://mohamedmaslooh.github.io/Warid/",
 
     logs_title:    "Logs",
     logs_copy:     "Copy All",
@@ -436,7 +472,7 @@ export const translations = {
     ob_title:         "Welcome to Warid",
     ob_sub:           "Your AI-powered voice transcription and command assistant",
     ob_about_t:       "What is Warid?",
-    ob_about_b:       "Warid turns your voice into smart text in seconds. Record a note or press a custom shortcut and Warid will transcribe, format, and even run commands on your speech: summarize, translate, draft an email, or any template you create.",
+    ob_about_b:       "Warid turns your voice into smart text in seconds. Record a note or press a custom shortcut and Warid will transcribe, format, and even run commands on your speech: summarize, translate, draft an email, or any command you create.",
     ob_pick_lang:     "Language",
     ob_pick_theme:    "Appearance",
     ob_pick_mic:      "Microphone",

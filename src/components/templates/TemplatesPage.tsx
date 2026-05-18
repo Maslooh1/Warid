@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef } from "react";
-import { Plus, Trash2, Save, X, Download, Upload, Keyboard, XCircle } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Trash2, Save, X } from "lucide-react";
+import { HotkeyField } from "../ui/HotkeyField";
 import { useTemplatesStore } from "../../stores/templatesStore";
 import { useSettingsStore } from "../../stores/settingsStore";
 import { KNOWN_MODELS } from "../../lib/gemini";
 import { Select } from "../ui/Select";
-import { acceleratorFromEvent, formatAccelerator, normalizeAccelerator } from "../../lib/hotkey";
+import { formatAccelerator, normalizeAccelerator } from "../../lib/hotkey";
 import { useLang } from "../../lib/useLang";
 import type { Template } from "../../types";
 
@@ -51,43 +52,11 @@ export function TemplatesPage() {
     setHotkeyError(conflict ? t("tpl_hk_conflict", getTemplateName(conflict, lang)) : null);
   }, [editing?.hotkey, editing?.id, templates, t, lang]);
 
-  const handleExport = () => {
-    const json = JSON.stringify(templates.filter((tpl) => !tpl.is_default), null, 2);
-    const blob = new Blob([json], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "warid-commands.json";
-    a.click();
-  };
-
-  const handleImport = () => {
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = ".json";
-    input.onchange = async (e) => {
-      const file = (e.target as HTMLInputElement).files?.[0];
-      if (!file) return;
-      const text = await file.text();
-      const data = JSON.parse(text) as Template[];
-      for (const tpl of data) {
-        await save({ ...tpl, id: crypto.randomUUID(), is_default: 0, hotkey: null, created_at: Date.now(), updated_at: Date.now() });
-      }
-    };
-    input.click();
-  };
-
   return (
     <div className="flex flex-col h-full">
       <header className="page-header">
         <h1 className="page-title">{t("tpl_title")}</h1>
         <div className="flex gap-2">
-          <button onClick={handleImport} className="btn-ghost">
-            <Upload size={14} strokeWidth={1.75} /> {t("tpl_import")}
-          </button>
-          <button onClick={handleExport} className="btn-ghost">
-            <Download size={14} strokeWidth={1.75} /> {t("tpl_export")}
-          </button>
           <button onClick={() => setEditing(EMPTY_TEMPLATE())} className="btn-primary">
             <Plus size={14} strokeWidth={2} /> {t("tpl_new")}
           </button>
@@ -187,52 +156,3 @@ export function TemplatesPage() {
   );
 }
 
-function HotkeyField({ value, onChange, error }: { value: string | null; onChange: (hk: string | null) => void; error: string | null }) {
-  const { t } = useLang();
-  const [capturing, setCapturing] = useState(false);
-  const captureRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!capturing) return;
-    const onKey = (e: KeyboardEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      if (e.key === "Escape") { setCapturing(false); return; }
-      const accel = acceleratorFromEvent(e);
-      if (!accel) return;
-      onChange(accel);
-      setCapturing(false);
-    };
-    window.addEventListener("keydown", onKey, true);
-    return () => window.removeEventListener("keydown", onKey, true);
-  }, [capturing, onChange]);
-
-  const display = formatAccelerator(value);
-
-  return (
-    <div className="space-y-1.5">
-      <label className="section-label">{t("tpl_hotkey")}</label>
-      <div ref={captureRef} className="flex items-center gap-2">
-        {capturing ? (
-          <div className="input-base flex-1 flex items-center justify-center font-mono text-xs" style={{ color: "var(--accent)", borderColor: "var(--accent-border)" }}>
-            {t("tpl_hk_capture")}
-          </div>
-        ) : (
-          <button type="button" onClick={() => setCapturing(true)} className="input-base flex-1 flex items-center justify-between text-start hover:border-[var(--accent-border)] transition-colors">
-            <span className={display ? "font-mono text-sm" : "text-sm"} style={{ color: display ? "var(--text)" : "var(--muted)" }} dir="ltr">
-              {display || t("tpl_hk_click")}
-            </span>
-            <Keyboard size={16} strokeWidth={1.75} style={{ color: "var(--muted)" }} />
-          </button>
-        )}
-        {value && !capturing && (
-          <button type="button" onClick={() => onChange(null)} className="transition-colors p-2" style={{ color: "var(--muted)", borderRadius: 8 }}>
-            <XCircle size={20} strokeWidth={1.75} />
-          </button>
-        )}
-      </div>
-      {error && <p className="text-xs" style={{ color: "var(--danger)" }}>{error}</p>}
-      <p className="text-xs" style={{ color: "var(--muted)" }}>{t("tpl_hk_hint")}</p>
-    </div>
-  );
-}

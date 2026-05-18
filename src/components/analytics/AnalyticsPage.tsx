@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   BarChart2, Clock, Zap, Mic, Trophy, Star, Crown,
@@ -35,8 +35,9 @@ const HEATMAP_DAYS = HEATMAP_WEEKS * 7;
 function formatTime(minutes: number, t: (key: LangKey, ...args: string[]) => string): string {
   if (minutes < 1) return t("time_less_min");
   if (minutes < 60) return t("time_min", String(Math.round(minutes)));
-  const h = Math.floor(minutes / 60);
-  const m = Math.round(minutes % 60);
+  let h = Math.floor(minutes / 60);
+  let m = Math.round(minutes % 60);
+  if (m === 60) { h += 1; m = 0; }
   if (m === 0) return t("time_hour", String(h));
   return t("time_hour_min", String(h), String(m));
 }
@@ -136,10 +137,9 @@ function HeroProgress({
 }
 
 function StatCard({
-  icon: Icon, label, value, sub, sparkData,
+  icon: Icon, label, value, sub,
 }: {
   icon: React.ElementType; label: string; value: React.ReactNode; sub?: string;
-  sparkData?: number[];
 }) {
   return (
     <div className="card flex flex-col justify-between" style={{ padding: 18, minHeight: 156 }}>
@@ -154,31 +154,105 @@ function StatCard({
           {value}
         </div>
         {sub && <p className="text-xs mt-2" style={{ color: "var(--muted)" }}>{sub}</p>}
-        {sparkData && sparkData.length > 1 && <Sparkline data={sparkData} />}
       </div>
     </div>
   );
 }
 
-function Sparkline({ data }: { data: number[] }) {
-  const max = Math.max(...data, 1);
-  const w = 100;
-  const h = 28;
-  const stepX = w / (data.length - 1);
-  const pts = data.map((v, i) => `${(i * stepX).toFixed(2)},${(h - (v / max) * h).toFixed(2)}`).join(" ");
-  const area = `0,${h} ${pts} ${w},${h}`;
+function ActivityChart({
+  cells, lang, t,
+}: {
+  cells: Array<{ key: number; words: number }>;
+  lang: string;
+  t: (key: string, ...args: string[]) => string;
+}) {
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [hover, setHover] = useState<{ index: number; clientX: number; clientY: number } | null>(null);
+
+  const n = cells.length;
+  const max = useMemo(() => Math.max(...cells.map((c) => c.words), 1), [cells]);
+
+  const W = 1000;
+  const H = 52;
+  const PAD_TOP = 5;
+  const stepX = W / Math.max(n - 1, 1);
+
+  const pts = useMemo(
+    () => cells.map((c, i) => [
+      i * stepX,
+      PAD_TOP + (1 - c.words / max) * (H - PAD_TOP),
+    ] as [number, number]),
+    [cells, max, stepX],
+  );
+
+  const linePath = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ");
+  const areaPath = `M0,${H} ${pts.map((p) => `L${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ")} L${pts[n - 1][0].toFixed(1)},${H} Z`;
+
+  function onMouseMove(e: React.MouseEvent<SVGSVGElement>) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const index = Math.max(0, Math.min(n - 1, Math.round(((e.clientX - rect.left) / rect.width) * (n - 1))));
+    setHover({ index, clientX: e.clientX, clientY: e.clientY });
+  }
+
+  const hoverCell = hover ? cells[hover.index] : null;
+  const hoverPt = hover ? pts[hover.index] : null;
 
   return (
-    <svg viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" className="w-full mt-3" style={{ height: 28, display: "block" }}>
-      <defs>
-        <linearGradient id="spark-fill" x1="0" x2="0" y1="0" y2="1">
-          <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="var(--accent)" stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <polygon points={area} fill="url(#spark-fill)" />
-      <polyline points={pts} fill="none" stroke="var(--accent)" strokeWidth="1.4" strokeLinejoin="round" strokeLinecap="round" />
-    </svg>
+    <div className="mt-4" style={{ borderTop: "1px solid var(--border)", paddingTop: 10 }}>
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${W} ${H}`}
+        preserveAspectRatio="none"
+        className="w-full"
+        style={{ height: 52, display: "block", cursor: "crosshair" }}
+        onMouseMove={onMouseMove}
+        onMouseLeave={() => setHover(null)}
+      >
+        <defs>
+          <linearGradient id="act-grad" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="var(--accent)" stopOpacity="0.22" />
+            <stop offset="100%" stopColor="var(--accent)" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <path d={areaPath} fill="url(#act-grad)" />
+        <path d={linePath} fill="none" stroke="var(--accent)" strokeWidth="1.8" strokeLinejoin="round" strokeLinecap="round" />
+        {hoverPt && (
+          <line x1={hoverPt[0]} y1={PAD_TOP} x2={hoverPt[0]} y2={H} stroke="var(--accent)" strokeWidth="0.8" opacity="0.55" />
+        )}
+      </svg>
+      {hover && hoverCell && createPortal(
+        <div
+          role="tooltip"
+          style={{
+            position: "fixed",
+            left: hover.clientX + 14,
+            top: hover.clientY - 14,
+            zIndex: 9999,
+            pointerEvents: "none",
+            padding: "8px 12px",
+            borderRadius: 10,
+            background: "color-mix(in srgb, var(--surface) 82%, transparent)",
+            backdropFilter: "blur(14px) saturate(140%)",
+            WebkitBackdropFilter: "blur(14px) saturate(140%)",
+            border: "1px solid var(--accent-border)",
+            boxShadow: "0 12px 32px -8px rgba(0,0,0,.55), 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent)",
+            color: "var(--text)",
+            fontSize: 12,
+            lineHeight: 1.35,
+            whiteSpace: "nowrap",
+          }}
+          dir={lang === "ar" ? "rtl" : "ltr"}
+        >
+          <div className="font-mono" style={{ fontSize: 11, color: "var(--muted)" }}>
+            {new Date(hoverCell.key).toLocaleDateString(lang === "ar" ? "ar-SA" : "en-US", { year: "numeric", month: "short", day: "numeric" })}
+          </div>
+          <div className="font-bold" style={{ color: "var(--accent)", fontFamily: '"Inter", system-ui, sans-serif' }}>
+            {t("anl_word_count", hoverCell.words.toLocaleString())}
+          </div>
+        </div>,
+        document.body,
+      )}
+    </div>
   );
 }
 
@@ -315,6 +389,7 @@ function Heatmap({ daily }: { daily: DailyActivity[] }) {
         ))}
         <span>{t("anl_more")}</span>
       </div>
+      <ActivityChart cells={cells} lang={lang} t={t as (key: string, ...args: string[]) => string} />
     </div>
   );
 }
@@ -639,18 +714,6 @@ export function AnalyticsPage() {
   const latestMilestone = milestones[milestones.length - 1] ?? null;
   const doneSet = useMemo(() => new Set(milestones.map((m) => m.wordCountAt)), [milestones]);
 
-  const sparkData = useMemo(() => {
-    if (dailyActivity.length === 0) return [];
-    const byDay = new Map(dailyActivity.map((d) => [d.day, d.words]));
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const out: number[] = [];
-    for (let i = 27; i >= 0; i--) {
-      out.push(byDay.get(today.getTime() - i * 86_400_000) ?? 0);
-    }
-    return out;
-  }, [dailyActivity]);
-
   const remainingToNext = next ? Math.max(next - totalWords, 0) : 0;
   const etaDays = next && paceWordsPerDay > 0
     ? Math.ceil(remainingToNext / paceWordsPerDay)
@@ -704,7 +767,6 @@ export function AnalyticsPage() {
                   label={t("anl_time_saved")}
                   value={formatTime(timeSavedMin, t)}
                   sub={t("anl_vs_typing")}
-                  sparkData={sparkData}
                 />
                 <StatCard
                   icon={Zap}

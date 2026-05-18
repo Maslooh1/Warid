@@ -40,6 +40,10 @@ export interface Settings {
   /** deviceId of the preferred audio input. Empty string = system default. */
   audioDeviceId: string;
   launchOnStartup: boolean;
+  /** Global shortcut to cancel an active recording from any screen. */
+  cancelHotkey: string;
+  /** False until the user dismisses the cancel-hotkey feature tip (shown once after upgrade). */
+  seenCancelHotkey: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -56,6 +60,8 @@ export const DEFAULT_SETTINGS: Settings = {
   firstRun: true,
   audioDeviceId: "",
   launchOnStartup: false,
+  cancelHotkey: "CommandOrControl+Alt+X",
+  seenCancelHotkey: false,
 };
 
 export const DEFAULT_TEMPLATES: Omit<Template, "created_at" | "updated_at">[] = [
@@ -65,10 +71,10 @@ export const DEFAULT_TEMPLATES: Omit<Template, "created_at" | "updated_at">[] = 
     name_en: "Transcribe",
     icon: "Microphone",
     color: "#FF6B3D",
-    prompt_body: `Transcribe the audio verbatim. Output the transcription only.`,
+    prompt_body: `Transcribe the audio verbatim. Preserve the original language of each word exactly as spoken — if the speaker switches between languages (e.g., Arabic and English), transcribe each word in the language it was spoken. Output the transcription only.`,
     output_language: null,
     model: null,
-    hotkey: "CommandOrControl+Shift+1",
+    hotkey: "CommandOrControl+Shift+R",
     is_default: 1,
   },
   {
@@ -80,7 +86,7 @@ export const DEFAULT_TEMPLATES: Omit<Template, "created_at" | "updated_at">[] = 
     prompt_body: `Translate the audio to clean English. Remove fillers, fix grammar, preserve meaning. Output the English text only.`,
     output_language: "en",
     model: null,
-    hotkey: "CommandOrControl+Shift+2",
+    hotkey: "CommandOrControl+Shift+T",
     is_default: 1,
   },
   {
@@ -92,7 +98,7 @@ export const DEFAULT_TEMPLATES: Omit<Template, "created_at" | "updated_at">[] = 
     prompt_body: `Rewrite the audio as a clear English coding task or developer brief. Output the brief only.`,
     output_language: "en",
     model: null,
-    hotkey: "CommandOrControl+Shift+3",
+    hotkey: "CommandOrControl+Shift+C",
     is_default: 1,
   },
 ];

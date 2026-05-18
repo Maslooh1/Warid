@@ -85,6 +85,33 @@ async function migrate(db: Awaited<ReturnType<typeof Database.load>>) {
     `CREATE INDEX IF NOT EXISTS idx_milestones_created ON analytics_milestones(created_at DESC);`
   );
 
+  // Align default hotkeys to match the website (R/T/C), but only if the user hasn't changed them.
+  const hotkeyMigrations: [string, string, string][] = [
+    ["transcribe",      "CommandOrControl+Shift+1", "CommandOrControl+Shift+R"],
+    ["translate_en",    "CommandOrControl+Shift+2", "CommandOrControl+Shift+T"],
+    ["coding_assistant","CommandOrControl+Shift+3", "CommandOrControl+Shift+C"],
+  ];
+  for (const [id, oldHk, newHk] of hotkeyMigrations) {
+    await db.execute(
+      `UPDATE templates SET hotkey = ?, updated_at = ? WHERE id = ? AND hotkey = ?`,
+      [newHk, Date.now(), id, oldHk]
+    );
+  }
+
+  // Update transcribe prompt to preserve original language per-word (only if user hasn't edited it).
+  await db.execute(
+    `UPDATE templates SET prompt_body = ?, updated_at = ? WHERE id = 'transcribe' AND prompt_body = 'Transcribe the audio verbatim. Output the transcription only.'`,
+    [
+      `Transcribe the audio verbatim. Preserve the original language of each word exactly as spoken — if the speaker switches between languages (e.g., Arabic and English), transcribe each word in the language it was spoken. Output the transcription only.`,
+      Date.now(),
+    ]
+  );
+
+  // Remove duplicate Coding Assistant templates (keep only the canonical 'coding_assistant' id).
+  await db.execute(
+    `DELETE FROM templates WHERE name IN ('Coding Assistant', 'مساعد البرمجة') AND id != 'coding_assistant'`
+  );
+
   const now = Date.now();
   for (const t of DEFAULT_TEMPLATES) {
     // Seed defaults on first install only — never overwrite user edits on later starts.

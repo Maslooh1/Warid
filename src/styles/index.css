@@ -7,6 +7,14 @@
    ============================================ */
 @layer base {
   :root {
+    --toast-bg:           rgba(252,250,246,0.92);
+    --toast-border:       rgba(28,27,23,0.09);
+    --toast-shadow:       0 12px 40px -8px rgba(28,27,23,0.20), 0 2px 8px -2px rgba(28,27,23,0.08), inset 0 1px 0 rgba(255,255,255,0.70);
+    --toast-accent-ring:  rgba(229,86,46,0.22);
+    --toast-accent-glow:  rgba(229,86,46,0.14);
+    --toast-success-ring: rgba(22,163,74,0.22);
+    --toast-success-glow: rgba(22,163,74,0.14);
+
     --bg:           #FAF7F2;
     --surface:      #FFFFFF;
     --surface-2:    #F4F1EA;
@@ -34,6 +42,14 @@
   }
 
   .dark {
+    --toast-bg:           rgba(20,20,30,0.88);
+    --toast-border:       rgba(255,255,255,0.09);
+    --toast-shadow:       0 12px 40px -8px rgba(0,0,0,0.70), 0 2px 8px -2px rgba(0,0,0,0.40), inset 0 1px 0 rgba(255,255,255,0.06);
+    --toast-accent-ring:  rgba(255,107,61,0.35);
+    --toast-accent-glow:  rgba(255,107,61,0.25);
+    --toast-success-ring: rgba(74,222,128,0.30);
+    --toast-success-glow: rgba(74,222,128,0.20);
+
     --bg:           #0A0A0F;
     --surface:      rgba(255,255,255,.04);
     --surface-2:    rgba(255,255,255,.06);
@@ -88,6 +104,14 @@
      bright white dropdown menus that clash with the design system. */
   :root { color-scheme: light; }
   :root.dark { color-scheme: dark; }
+}
+
+/* ============================================
+   TOAST ANIMATIONS
+   ============================================ */
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(-10px) scale(0.96); }
+  to   { opacity: 1; transform: translateY(0)     scale(1); }
 }
 
 /* ============================================

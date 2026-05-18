@@ -51,9 +51,11 @@ interface AnalyticsStore {
   topWords: Array<{ word: string; count: number }>;
   analysing: boolean;
   loaded: boolean;
+  celebrateMilestone: number | null;
 
   load: (apiKey?: string) => Promise<void>;
   refresh: (apiKey?: string) => Promise<void>;
+  clearCelebrateMilestone: () => void;
 }
 
 function computeStreak(daily: DailyActivity[]): number {
@@ -96,6 +98,9 @@ export const useAnalyticsStore = create<AnalyticsStore>((set, get) => ({
   topWords: [],
   analysing: false,
   loaded: false,
+  celebrateMilestone: null,
+
+  clearCelebrateMilestone: () => set({ celebrateMilestone: null }),
 
   load: async (apiKey) => {
     await get().refresh(apiKey);
@@ -131,6 +136,16 @@ export const useAnalyticsStore = create<AnalyticsStore>((set, get) => ({
     const paceWordsPerDay = computePace(dailyActivity);
     const topWords = computeTopWords(texts, 10);
 
+    // Detect newly crossed milestones for the celebration banner (persisted in localStorage)
+    const celebrated: number[] = JSON.parse(localStorage.getItem("warid_celebrated_ms") || "[]");
+    const newlyCrossed = MILESTONES.filter((m) => totalWords >= m && !celebrated.includes(m));
+    let celebrateUpdate: { celebrateMilestone: number } | Record<string, never> = {};
+    if (newlyCrossed.length > 0) {
+      const highest = newlyCrossed[newlyCrossed.length - 1];
+      localStorage.setItem("warid_celebrated_ms", JSON.stringify([...celebrated, ...newlyCrossed]));
+      celebrateUpdate = { celebrateMilestone: highest };
+    }
+
     set({
       totalWords,
       totalDurationMs,
@@ -145,6 +160,7 @@ export const useAnalyticsStore = create<AnalyticsStore>((set, get) => ({
       bestDay,
       topWords,
       loaded: true,
+      ...celebrateUpdate,
     });
 
     // Check if we should fire a new milestone analysis
