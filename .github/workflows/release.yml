@@ -87,7 +87,7 @@ jobs:
 
   publish-release:
     needs: [auto-tag, release]
-    if: ${{ needs.auto-tag.result == 'success' && needs.release.result != 'cancelled' }}
+    if: ${{ needs.auto-tag.result == 'success' && needs.release.result == 'success' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
