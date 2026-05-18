@@ -44,7 +44,7 @@ export function Welcome({ startAtKey = false, onComplete }: Props) {
   };
 
   const finish = async (saveKey: boolean) => {
-    const patch: Partial<Settings> = { firstRun: false };
+    const patch: Partial<Settings> = { firstRun: false, seenCancelHotkey: true };
     if (saveKey && apiKey.trim()) patch.apiKey = apiKey.trim();
     await update(patch);
     onComplete();

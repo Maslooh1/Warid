@@ -7,10 +7,14 @@ interface Props {
   value: string | null;
   onChange: (hk: string | null) => void;
   error?: string | null;
+  label?: string | null;
+  hint?: string | null;
 }
 
-export function HotkeyField({ value, onChange, error }: Props) {
+export function HotkeyField({ value, onChange, error, label, hint }: Props) {
   const { t } = useLang();
+  const labelText = label === undefined ? t("tpl_hotkey") : label;
+  const hintText = hint === undefined ? t("tpl_hk_hint") : hint;
   const [capturing, setCapturing] = useState(false);
   const captureRef = useRef<HTMLDivElement>(null);
 
@@ -33,7 +37,7 @@ export function HotkeyField({ value, onChange, error }: Props) {
 
   return (
     <div className="space-y-1.5">
-      <label className="section-label">{t("tpl_hotkey")}</label>
+      {labelText && <label className="section-label">{labelText}</label>}
       <div ref={captureRef} className="flex items-center gap-2">
         {capturing ? (
           <div
@@ -70,7 +74,7 @@ export function HotkeyField({ value, onChange, error }: Props) {
         )}
       </div>
       {error && <p className="text-xs" style={{ color: "var(--danger)" }}>{error}</p>}
-      <p className="text-xs" style={{ color: "var(--muted)" }}>{t("tpl_hk_hint")}</p>
+      {hintText && <p className="text-xs" style={{ color: "var(--muted)" }}>{hintText}</p>}
     </div>
   );
 }

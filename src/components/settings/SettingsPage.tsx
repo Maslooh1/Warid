@@ -232,7 +232,7 @@ export function SettingsPage() {
                   <span className="text-sm" style={{ color: "var(--text)" }}>{t("set_cancel_hotkey")}</span>
                   <p className="text-xs" style={{ color: "var(--muted)" }}>{t("set_cancel_hotkey_hint")}</p>
                 </div>
-                <HotkeyField value={cancelHotkey} onChange={setCancelHotkey} />
+                <HotkeyField value={cancelHotkey} onChange={setCancelHotkey} label={null} hint={null} />
               </div>
             </section>
 
