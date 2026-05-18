@@ -337,25 +337,35 @@ function applyLang(lang) {
 
 function fetchRelease() {
   var cached = sessionStorage.getItem('warid_release');
-  var data = cached ? JSON.parse(cached) : null;
-
-  if (data) {
-    applyRelease(data);
-  } else {
-    fetch('https://api.github.com/repos/MohamedMaslooh/Warid/releases/latest')
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
-        sessionStorage.setItem('warid_release', JSON.stringify(data));
+  if (cached) {
+    try {
+      var data = JSON.parse(cached);
+      if (data && data.tag_name && Array.isArray(data.assets)) {
         applyRelease(data);
-      })
-      .catch(function() {
-        // fallback: link to releases page
-        var fallback = 'https://github.com/MohamedMaslooh/Warid/releases/latest';
-        document.querySelectorAll('.dl-btn-win, .dl-btn-mac, .dl-btn-linux').forEach(function(a) {
-          a.href = fallback;
-        });
-      });
+        return;
+      }
+    } catch (e) { /* fall through to refetch */ }
   }
+
+  fetch('https://api.github.com/repos/mohamedmaslooh/Warid/releases/latest', {
+    headers: { 'Accept': 'application/vnd.github+json' },
+    cache: 'no-store'
+  })
+    .then(function(r) {
+      if (!r.ok) throw new Error('GitHub API ' + r.status);
+      return r.json();
+    })
+    .then(function(data) {
+      if (!data || !data.tag_name || !Array.isArray(data.assets)) {
+        throw new Error('Malformed release payload');
+      }
+      sessionStorage.setItem('warid_release', JSON.stringify(data));
+      applyRelease(data);
+    })
+    .catch(function() {
+      // Network error, rate limit, or malformed response: leave the static
+      // /releases/latest hrefs in place so users still reach the newest release.
+    });
 }
 
 function applyRelease(data) {
