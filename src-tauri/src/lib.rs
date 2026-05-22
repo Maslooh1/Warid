@@ -19,6 +19,30 @@ fn greet(name: &str) -> String {
 }
 
 #[tauri::command]
+fn save_pdf(file_name: String, pdf_bytes: Vec<u8>) -> Result<String, String> {
+    let default_name = if file_name.ends_with(".pdf") {
+        file_name.clone()
+    } else {
+        format!("{}.pdf", file_name)
+    };
+
+    let chosen = rfd::FileDialog::new()
+        .set_title("Save PDF")
+        .set_file_name(&default_name)
+        .add_filter("PDF Document", &["pdf"])
+        .save_file();
+
+    match chosen {
+        Some(path) => {
+            std::fs::write(&path, &pdf_bytes)
+                .map_err(|e| format!("Failed to write file: {}", e))?;
+            Ok(path.to_string_lossy().into_owned())
+        }
+        None => Err("cancelled".to_string()),
+    }
+}
+
+#[tauri::command]
 fn update_tray_language(app: tauri::AppHandle, lang: String) {
     let (show_label, quit_label, tooltip) = if lang == "ar" {
         ("إظهار وارِد", "إغلاق", "وارِد")
@@ -228,7 +252,7 @@ pub fn run() {
             });
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![greet, paste_at_cursor, update_tray_language])
+        .invoke_handler(tauri::generate_handler![greet, paste_at_cursor, update_tray_language, save_pdf])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -29,6 +29,8 @@ export const translations = {
     rec_mic_error:    "تعذر الوصول للميكروفون",
     rec_show_all:     "عرض الكل",
     rec_done:         "جاهز",
+    err_no_gemini_key: "Gemini API Key مفقود، أضفه من الإعدادات",
+    err_no_or_key:    "OpenRouter API Key مفقود، أضفه من الإعدادات",
 
     // Activity log (inline)
     log_section: "Activity Log",
@@ -65,6 +67,10 @@ export const translations = {
     tpl_save:        "حفظ الأمر",
     tpl_saving:      "جاري الحفظ...",
     tpl_select:      "اختر أمراً للتعديل أو أنشئ أمراً جديداً",
+    tpl_favorite:    "أمر مفضل",
+    tpl_favorite_desc: "إظهار هذا الأمر في أعلى القوائم المنسدلة للخيارات",
+    tpl_upload_only: "لتفريغ الملفات فقط",
+    tpl_upload_only_desc: "إظهار هذا الأمر في صفحة رفع وتفريغ الملفات فقط",
 
     // Settings page
     set_title:         "الإعدادات",
@@ -256,6 +262,31 @@ export const translations = {
 
     // Select default placeholder
     select_ph: "اختر…",
+
+    // File Upload / Queue Transcription
+    nav_upload: "تفريغ الملفات",
+    quota_reqs: "طلبات",
+    upload_title: "تفريغ المحاضرات والملفات",
+    upload_drag_drop: "اسحب وأفلت الملفات الصوتية أو المرئية هنا، أو اضغط لتصفح جهازك",
+    upload_desc: "يدعم الملفات الصوتية والفيديو (MP3, WAV, M4A, WEBM, MP4). يتم تقسيم الملفات الكبيرة لتسريع العملية وزيادة دقة التفريغ.",
+    upload_queue: "طابور الملفات",
+    upload_clear_queue: "مسح الطابور",
+    upload_status_pending: "في الانتظار",
+    upload_status_decoding: "جاري استخراج الصوت...",
+    upload_status_transcribing: "جاري التفريغ النصي...",
+    upload_status_completed: "اكتمل",
+    upload_status_failed: "فشل",
+    upload_status_cancelled: "ملغى",
+    upload_btn_export_pdf: "تصدير كـ PDF",
+    upload_btn_copy: "نسخ النص",
+    upload_btn_cancel: "إلغاء",
+    upload_btn_start: "بدء المعالجة",
+    upload_quota_warning: "لقد استهلكت كامل حصتك اليومية من الطلبات لهذا النموذج.",
+    upload_segment_info: "القسم {0} من {1}",
+    upload_select_template: "اختر الأمر المطبق:",
+    upload_split_interval: "تقسيم كل (دقائق):",
+    upload_empty_queue: "لا توجد ملفات في الطابور حالياً",
+    upload_add_files: "إضافة ملفات",
   },
 
   en: {
@@ -286,6 +317,8 @@ export const translations = {
     rec_mic_error:    "Microphone access failed",
     rec_show_all:     "Show all",
     rec_done:         "Done",
+    err_no_gemini_key: "Gemini API Key missing, please add it in Settings",
+    err_no_or_key:    "OpenRouter API Key missing, please add it in Settings",
 
     log_section: "Activity Log",
     log_clear:   "Clear",
@@ -319,6 +352,10 @@ export const translations = {
     tpl_save:        "Save Command",
     tpl_saving:      "Saving...",
     tpl_select:      "Select a command to edit or create a new one",
+    tpl_favorite:    "Favorite Command",
+    tpl_favorite_desc: "Show this command at the top of select dropdowns and lists",
+    tpl_upload_only: "File Transcription Only",
+    tpl_upload_only_desc: "Only show this command on the file upload transcription page",
 
     set_title:         "Settings",
     set_gemini:        "Google AI Studio",
@@ -502,6 +539,31 @@ export const translations = {
     ob_start:         "Save & Start",
 
     select_ph: "Choose…",
+
+    // File Upload / Queue Transcription
+    nav_upload: "File Transcription",
+    quota_reqs: "reqs",
+    upload_title: "File Transcription",
+    upload_drag_drop: "Drag & drop audio or video files here, or click to browse",
+    upload_desc: "Supports audio and video files (MP3, WAV, M4A, WEBM, MP4). Large files are automatically segmented to speed up processing and increase accuracy.",
+    upload_queue: "File Queue",
+    upload_clear_queue: "Clear Queue",
+    upload_status_pending: "Pending",
+    upload_status_decoding: "Decoding audio...",
+    upload_status_transcribing: "Transcribing...",
+    upload_status_completed: "Completed",
+    upload_status_failed: "Failed",
+    upload_status_cancelled: "Cancelled",
+    upload_btn_export_pdf: "Export as PDF",
+    upload_btn_copy: "Copy Text",
+    upload_btn_cancel: "Cancel",
+    upload_btn_start: "Start Processing",
+    upload_quota_warning: "You have reached the daily request limit for this model.",
+    upload_segment_info: "Segment {0} of {1}",
+    upload_select_template: "Select command to apply:",
+    upload_split_interval: "Split interval (mins):",
+    upload_empty_queue: "No files in the queue currently",
+    upload_add_files: "Add files",
   },
 } as const;
 

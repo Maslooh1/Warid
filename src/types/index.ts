@@ -9,6 +9,8 @@ export interface Template {
   model: string | null;
   hotkey: string | null;
   is_default: 0 | 1;
+  is_upload_only?: 0 | 1;
+  is_favorite?: 0 | 1;
   created_at: number;
   updated_at: number;
 }
@@ -66,6 +68,20 @@ export const DEFAULT_SETTINGS: Settings = {
 
 export const DEFAULT_TEMPLATES: Omit<Template, "created_at" | "updated_at">[] = [
   {
+    id: "lecture_transcription",
+    name: "تفريغ وترتيب المحاضرة",
+    name_en: "Lecture Transcription",
+    icon: "BookOpen",
+    color: "#8B5CF6",
+    prompt_body: `Extract the main title of the lecture and write it at the very beginning starting with a single '#' (Markdown level 1 header) e.g., "# Title of the Lecture". Then transcribe the audio, organizing it into well-formatted paragraphs with appropriate subheadings (using '##' for subheadings) where necessary. Format the output nicely so that it looks professional and readable. Output only the formatted title and transcription, without any preamble, metadata, or extra explanation.`,
+    output_language: null,
+    model: null,
+    hotkey: null,
+    is_default: 1,
+    is_upload_only: 1,
+    is_favorite: 0,
+  },
+  {
     id: "transcribe",
     name: "تفريغ نصي",
     name_en: "Transcribe",
@@ -76,6 +92,8 @@ export const DEFAULT_TEMPLATES: Omit<Template, "created_at" | "updated_at">[] = 
     model: null,
     hotkey: "CommandOrControl+Shift+R",
     is_default: 1,
+    is_upload_only: 0,
+    is_favorite: 0,
   },
   {
     id: "translate_en",
@@ -88,6 +106,8 @@ export const DEFAULT_TEMPLATES: Omit<Template, "created_at" | "updated_at">[] = 
     model: null,
     hotkey: "CommandOrControl+Shift+T",
     is_default: 1,
+    is_upload_only: 0,
+    is_favorite: 0,
   },
   {
     id: "coding_assistant",
@@ -100,5 +120,7 @@ export const DEFAULT_TEMPLATES: Omit<Template, "created_at" | "updated_at">[] = 
     model: null,
     hotkey: "CommandOrControl+Shift+C",
     is_default: 1,
+    is_upload_only: 0,
+    is_favorite: 0,
   },
 ];

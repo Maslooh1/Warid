@@ -71,33 +71,33 @@ export function SettingsPage() {
   ];
 
   return (
-    <div className="flex-1 overflow-y-auto">
+    <div className="flex flex-col h-full">
       <header className="page-header">
         <h1 className="page-title">{t("set_title")}</h1>
       </header>
 
-      {/* Tab bar */}
-      <div className="max-w-xl mx-auto px-6 pt-2">
-        <div className="flex gap-1 p-1 rounded-xl" style={{ background: "var(--surface-2)" }}>
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar navigation */}
+        <div className="w-48 shrink-0 p-4 flex flex-col gap-1 overflow-y-auto" style={{ borderInlineEnd: "1px solid var(--border)", background: "transparent" }}>
           {tabs.map((tab) => (
             <button
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className="flex-1 text-sm py-1.5 px-3 rounded-lg transition-colors font-medium"
+              className="text-sm py-2 px-3 rounded-lg transition-colors font-medium text-start"
               style={{
-                background: activeTab === tab.id ? "var(--surface)" : "transparent",
+                background: activeTab === tab.id ? "var(--surface-2)" : "transparent",
                 color: activeTab === tab.id ? "var(--accent)" : "var(--muted)",
-                boxShadow: activeTab === tab.id ? "0 1px 3px rgba(0,0,0,0.15)" : "none",
               }}
             >
               {tab.label}
             </button>
           ))}
         </div>
-      </div>
 
-      <form onSubmit={handleSave} className="max-w-xl mx-auto p-6 space-y-8">
+        {/* Content area */}
+        <div className="flex-1 overflow-y-auto">
+          <form onSubmit={handleSave} className="max-w-xl mx-auto p-6 space-y-8">
 
         {/* Tab: API Keys */}
         {activeTab === "keys" && (
@@ -324,8 +324,9 @@ export function SettingsPage() {
             </div>
           </section>
         )}
-
       </form>
+        </div>
+      </div>
     </div>
   );
 }

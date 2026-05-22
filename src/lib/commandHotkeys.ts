@@ -45,6 +45,7 @@ export async function syncCommandHotkeys(templates: Template[]): Promise<SyncRes
   const desired = new Map<string, string>(); // accel → templateId
 
   for (const t of templates) {
+    if (t.is_upload_only === 1) continue;
     const norm = normalizeAccelerator(t.hotkey);
     if (!norm) continue;
     if (desired.has(norm)) continue; // duplicate — first template wins

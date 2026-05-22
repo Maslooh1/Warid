@@ -52,6 +52,8 @@ async function migrate(db: Awaited<ReturnType<typeof Database.load>>) {
 
   // Idempotent column adds for upgrades from earlier schemas.
   try { await db.execute(`ALTER TABLE templates ADD COLUMN hotkey TEXT`); } catch { /* exists */ }
+  try { await db.execute(`ALTER TABLE templates ADD COLUMN is_upload_only INTEGER DEFAULT 0`); } catch { /* exists */ }
+  try { await db.execute(`ALTER TABLE templates ADD COLUMN is_favorite INTEGER DEFAULT 0`); } catch { /* exists */ }
 
   await db.execute(`
     CREATE TABLE IF NOT EXISTS history (
@@ -116,30 +118,31 @@ async function migrate(db: Awaited<ReturnType<typeof Database.load>>) {
   for (const t of DEFAULT_TEMPLATES) {
     // Seed defaults on first install only — never overwrite user edits on later starts.
     await db.execute(
-      `INSERT INTO templates (id, name, icon, color, prompt_body, output_language, model, hotkey, is_default, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `INSERT INTO templates (id, name, icon, color, prompt_body, output_language, model, hotkey, is_default, is_upload_only, is_favorite, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT(id) DO NOTHING`,
-      [t.id, t.name, t.icon, t.color, t.prompt_body, t.output_language, t.model, t.hotkey, t.is_default, now, now]
+      [t.id, t.name, t.icon, t.color, t.prompt_body, t.output_language, t.model, t.hotkey, t.is_default, t.is_upload_only ?? 0, t.is_favorite ?? 0, now, now]
     );
   }
 }
 
 export async function getTemplates(): Promise<Template[]> {
   const db = await getDb();
-  return db.select<Template[]>("SELECT * FROM templates ORDER BY is_default DESC, created_at ASC");
+  return db.select<Template[]>("SELECT * FROM templates ORDER BY is_favorite DESC, is_default DESC, created_at ASC");
 }
 
 export async function upsertTemplate(t: Template): Promise<void> {
   const db = await getDb();
   await db.execute(
-    `INSERT INTO templates (id, name, icon, color, prompt_body, output_language, model, hotkey, is_default, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `INSERT INTO templates (id, name, icon, color, prompt_body, output_language, model, hotkey, is_default, is_upload_only, is_favorite, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
      ON CONFLICT(id) DO UPDATE SET
        name=excluded.name, icon=excluded.icon, color=excluded.color,
        prompt_body=excluded.prompt_body, output_language=excluded.output_language,
        model=excluded.model, hotkey=excluded.hotkey,
+       is_upload_only=excluded.is_upload_only, is_favorite=excluded.is_favorite,
        updated_at=excluded.updated_at`,
-    [t.id, t.name, t.icon, t.color, t.prompt_body, t.output_language, t.model, t.hotkey, t.is_default, t.created_at, t.updated_at]
+    [t.id, t.name, t.icon, t.color, t.prompt_body, t.output_language, t.model, t.hotkey, t.is_default, t.is_upload_only ?? 0, t.is_favorite ?? 0, t.created_at, t.updated_at]
   );
 }
 

@@ -5,6 +5,7 @@ import {
   Settings,
   Terminal,
   BarChart2,
+  Upload,
 } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import { useSettingsStore } from "../../stores/settingsStore";
@@ -13,6 +14,7 @@ import type { LangKey } from "../../lib/i18n";
 
 const ALL_NAV_ITEMS: Array<{ to: string; icon: React.ElementType; key: LangKey; logsOnly: boolean }> = [
   { to: "/",          icon: Mic,           key: "nav_record",    logsOnly: false },
+  { to: "/upload",    icon: Upload,        key: "nav_upload",    logsOnly: false },
   { to: "/history",   icon: History,       key: "nav_history",   logsOnly: false },
   { to: "/templates", icon: LayoutTemplate,key: "nav_templates", logsOnly: false },
   { to: "/analytics", icon: BarChart2,     key: "nav_analytics", logsOnly: false },

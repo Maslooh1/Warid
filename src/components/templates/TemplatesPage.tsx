@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, Trash2, Save, X } from "lucide-react";
+import { Plus, Trash2, Save, X, Star } from "lucide-react";
 import { HotkeyField } from "../ui/HotkeyField";
 import { useTemplatesStore } from "../../stores/templatesStore";
 import { useSettingsStore } from "../../stores/settingsStore";
@@ -24,6 +24,8 @@ const EMPTY_TEMPLATE = (): Template => ({
   model: null,
   hotkey: null,
   is_default: 0,
+  is_upload_only: 0,
+  is_favorite: 0,
   created_at: Date.now(),
   updated_at: Date.now(),
 });
@@ -68,6 +70,7 @@ export function TemplatesPage() {
           {templates.map((tpl) => {
             const hk = formatAccelerator(tpl.hotkey);
             const isSelected = editing?.id === tpl.id;
+            const isFav = tpl.is_favorite === 1;
             return (
               <div key={tpl.id} className="p-4 flex items-center justify-between group cursor-pointer transition-colors" style={{ borderBottom: "1px solid var(--border)", background: isSelected ? "var(--accent-soft)" : "transparent" }} onClick={() => setEditing({ ...tpl })}>
                 <div className="min-w-0 flex-1">
@@ -77,9 +80,32 @@ export function TemplatesPage() {
                   </div>
                   <p className="text-xs line-clamp-1" style={{ color: "var(--muted)" }}>{tpl.prompt_body}</p>
                 </div>
-                <button onClick={(e) => { e.stopPropagation(); remove(tpl.id); if (editing?.id === tpl.id) setEditing(null); }} className="opacity-0 group-hover:opacity-100 p-1.5 transition-all" style={{ color: "var(--danger)", borderRadius: 8 }}>
-                  <Trash2 size={14} strokeWidth={1.75} />
-                </button>
+                <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                  <button 
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      save({ ...tpl, is_favorite: isFav ? 0 : 1 }); 
+                      if (editing?.id === tpl.id) {
+                        setEditing({ ...editing, is_favorite: isFav ? 0 : 1 });
+                      }
+                    }} 
+                    className={`p-1.5 transition-all ${isFav ? "opacity-100" : "opacity-0 group-hover:opacity-100"}`} 
+                    style={{ color: isFav ? "#EAB308" : "var(--muted)", borderRadius: 8 }}
+                  >
+                    <Star size={14} fill={isFav ? "#EAB308" : "none"} strokeWidth={1.75} />
+                  </button>
+                  <button 
+                    onClick={(e) => { 
+                      e.stopPropagation(); 
+                      remove(tpl.id); 
+                      if (editing?.id === tpl.id) setEditing(null); 
+                    }} 
+                    className="opacity-0 group-hover:opacity-100 p-1.5 transition-all" 
+                    style={{ color: "var(--danger)", borderRadius: 8 }}
+                  >
+                    <Trash2 size={14} strokeWidth={1.75} />
+                  </button>
+                </div>
               </div>
             );
           })}
@@ -139,6 +165,36 @@ export function TemplatesPage() {
               </div>
 
               <HotkeyField value={editing.hotkey} onChange={(hk) => setEditing({ ...editing, hotkey: hk })} error={hotkeyError} />
+
+              <div className="space-y-3 pt-4" style={{ borderTop: "1px solid var(--border)" }}>
+                <label className="flex items-center justify-between cursor-pointer">
+                  <div>
+                    <span className="text-sm font-medium" style={{ color: "var(--text)" }}>{t("tpl_favorite")}</span>
+                    <p className="text-xs" style={{ color: "var(--muted)" }}>{t("tpl_favorite_desc")}</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={editing.is_favorite === 1}
+                    onChange={(e) => setEditing({ ...editing, is_favorite: e.target.checked ? 1 : 0 })}
+                    className="w-4 h-4 cursor-pointer"
+                    style={{ accentColor: "var(--accent)" }}
+                  />
+                </label>
+
+                <label className="flex items-center justify-between cursor-pointer">
+                  <div>
+                    <span className="text-sm font-medium" style={{ color: "var(--text)" }}>{t("tpl_upload_only")}</span>
+                    <p className="text-xs" style={{ color: "var(--muted)" }}>{t("tpl_upload_only_desc")}</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={editing.is_upload_only === 1}
+                    onChange={(e) => setEditing({ ...editing, is_upload_only: e.target.checked ? 1 : 0 })}
+                    className="w-4 h-4 cursor-pointer"
+                    style={{ accentColor: "var(--accent)" }}
+                  />
+                </label>
+              </div>
 
               <button onClick={handleSave} disabled={saving || !!hotkeyError} className="btn-primary">
                 <Save size={16} strokeWidth={1.75} />

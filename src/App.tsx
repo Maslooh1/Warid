@@ -9,6 +9,7 @@ import { TemplatesPage } from "./components/templates/TemplatesPage";
 import { SettingsPage } from "./components/settings/SettingsPage";
 import { LogsPage } from "./components/logs/LogsPage";
 import { AnalyticsPage } from "./components/analytics/AnalyticsPage";
+import { UploadPage } from "./components/recording/UploadPage";
 import { Welcome } from "./components/onboarding/Welcome";
 import { useSettingsStore } from "./stores/settingsStore";
 import { useTemplatesStore } from "./stores/templatesStore";
@@ -155,6 +156,7 @@ export default function App() {
               )}
               <Routes>
                 <Route path="/" element={<Recorder />} />
+                <Route path="/upload" element={<UploadPage />} />
                 <Route path="/history" element={<HistoryPage />} />
                 <Route path="/templates" element={<TemplatesPage />} />
                 <Route path="/settings" element={<SettingsPage />} />

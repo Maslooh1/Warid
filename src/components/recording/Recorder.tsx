@@ -20,6 +20,7 @@ import { setCommandHotkeyHandler } from "../../lib/commandHotkeys";
 import { formatAccelerator, normalizeAccelerator } from "../../lib/hotkey";
 import { useLang } from "../../lib/useLang";
 import type { Template, HistoryItem } from "../../types";
+import { QuotaIndicator } from "../layout/QuotaIndicator";
 
 /** Pick localised name for a template object */
 function getTemplateName(tpl: { name: string; name_en?: string }, lang: string): string {
@@ -58,7 +59,7 @@ export function Recorder() {
     const modelEntry = KNOWN_MODELS.find((m) => m.id === modelId);
     activeModelIdRef.current = modelId;
     rs.setActiveModel(modelEntry?.label ?? modelId);
-    addLog("info", t("log_msg_sending"), `template="${template.name}" model=${modelEntry?.label ?? modelId}`);
+    addLog("info", t("log_msg_sending"), `template="${getTemplateName(template, lang)}" model=${modelEntry?.label ?? modelId}`);
 
     if (!settings.apiKey && !settings.openRouterApiKey) {
       rs.setError(t("rec_no_key"));
@@ -248,6 +249,7 @@ export function Recorder() {
 
   const activeTemplate = getActive();
   const activeHotkey = formatAccelerator(activeTemplate?.hotkey);
+  const activeModelId = rs.state === "processing" ? activeModelIdRef.current : (activeTemplate?.model || settings.selectedModel);
 
   return (
     <div className="flex flex-col h-full">
@@ -257,7 +259,7 @@ export function Recorder() {
           {activeHotkey && <span className="kbd" dir="ltr">{activeHotkey}</span>}
         </div>
         <div className="flex items-center gap-2">
-          <ModelBadge model={rs.activeModel || KNOWN_MODELS.find((m) => m.id === (getActive()?.model || settings.selectedModel))?.label || settings.selectedModel} />
+          <QuotaIndicator modelId={activeModelId} />
           {rs.state === "processing" && (
             <button onClick={handleCancel} className="btn-danger">
               <Square size={14} fill="currentColor" /> {t("rec_cancel")}
@@ -367,7 +369,7 @@ export function Recorder() {
           <div className="p-5 flex-1 min-h-0 flex flex-col">
             <p className="section-label mb-3 shrink-0">{t("rec_command")}</p>
             <div className="flex flex-col gap-2 overflow-y-auto flex-1 -mx-1 px-1">
-              {templates.map((tpl) => {
+              {templates.filter((tpl) => tpl.is_upload_only !== 1).map((tpl) => {
                 const hk = formatAccelerator(tpl.hotkey);
                 const isActive = activeTemplateId === tpl.id;
                 return (
@@ -436,10 +438,6 @@ function InlineLogs() {
       </div>
     </div>
   );
-}
-
-function ModelBadge({ model }: { model: string }) {
-  return <div className="chip"><span className="font-mono">{model}</span></div>;
 }
 
 function RecentHistory() {

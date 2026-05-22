@@ -2,6 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import type { LogLevel } from "../stores/logStore";
 import type { Settings, Template } from "../types";
 import { buildPrompt } from "./prompts";
+import { t } from "./i18n";
 
 export type OnLog = (level: LogLevel, msg: string, detail?: string) => void;
 
@@ -238,6 +239,8 @@ export const KNOWN_MODELS: { id: string; provider: "gemini" | "openrouter"; labe
   { id: "google/gemini-2.5-flash-lite-preview-09-2025",        provider: "openrouter", label: "Gemini 2.5 Flash Lite Preview (OR)", quota: { type: "paid" } },
 ];
 
+import { useRequestTrackerStore } from "../stores/requestTrackerStore";
+
 export async function* streamAudio(
   settings: Settings,
   template: Template,
@@ -246,16 +249,17 @@ export async function* streamAudio(
   onLog?: OnLog,
 ): AsyncGenerator<string> {
   const modelId = template.model || settings.selectedModel;
+  useRequestTrackerStore.getState().incrementRequest(modelId);
+
   const entry = KNOWN_MODELS.find((m) => m.id === modelId);
   const provider = entry?.provider ?? "gemini";
 
-  onLog?.("info", `النموذج: ${entry?.label ?? modelId}`);
-
   if (provider === "gemini") {
-    if (!settings.apiKey) throw new Error("Gemini API Key مفقود، أضفه من الإعدادات");
+    if (!settings.apiKey) throw new Error(t(settings.uiLanguage, "err_no_gemini_key"));
     yield* streamTranscription(settings.apiKey, modelId, template, audioBase64, mimeType, onLog);
   } else {
-    if (!settings.openRouterApiKey) throw new Error("OpenRouter API Key مفقود، أضفه من الإعدادات");
+    if (!settings.openRouterApiKey) throw new Error(t(settings.uiLanguage, "err_no_or_key"));
     yield* streamOpenRouter(settings.openRouterApiKey, modelId, template, audioBase64, mimeType, undefined, onLog);
   }
 }
+

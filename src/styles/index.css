@@ -39,6 +39,8 @@
     --bg-grad-1:    rgba(229,86,46,.10);
     --bg-grad-2:    rgba(120,80,255,.06);
     --bg-grad-3:    rgba(240,140,44,.08);
+    --select-bg:          #FFFFFF;
+    --select-border:      #E8E3D6;
   }
 
   .dark {
@@ -74,6 +76,8 @@
     --bg-grad-1:    rgba(255,107,61,.18);
     --bg-grad-2:    rgba(120,80,255,.18);
     --bg-grad-3:    rgba(255,179,71,.10);
+    --select-bg:          #15151D;
+    --select-border:      rgba(255, 255, 255, 0.15);
   }
 
   html, body {
@@ -135,7 +139,7 @@
     background: var(--surface-2);
     border: 1px solid var(--border);
     color: var(--text);
-    padding: 10px 14px;
+    padding: 10px 18px;
     border-radius: 12px;
     font-family: inherit;
     font-size: 13.5px;
@@ -171,18 +175,13 @@
   }
 
   .select-popover {
-    background: var(--surface);
-    border: 1px solid var(--border);
+    background: var(--select-bg, #FFFFFF);
+    border: 1px solid var(--select-border, var(--border));
     border-radius: 12px;
     box-shadow: var(--shadow-card);
-    backdrop-filter: blur(20px);
-    overflow: hidden;
     z-index: 100;
-    max-height: 280px;
+    max-height: 180px;
     overflow-y: auto;
-  }
-  :root.dark .select-popover {
-    background: #15151D;  /* solid dark to avoid transparency artifacts over content */
   }
 
   .select-option {
@@ -191,7 +190,7 @@
     justify-content: space-between;
     gap: 10px;
     width: 100%;
-    padding: 9px 14px;
+    padding: 10px 18px;
     font-size: 13.5px;
     color: var(--text);
     background: transparent;
