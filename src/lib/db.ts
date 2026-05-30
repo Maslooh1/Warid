@@ -89,7 +89,7 @@ async function migrate(db: Awaited<ReturnType<typeof Database.load>>) {
 
   // Align default hotkeys to match the website (R/T/C), but only if the user hasn't changed them.
   const hotkeyMigrations: [string, string, string][] = [
-    ["transcribe",      "CommandOrControl+Shift+1", "CommandOrControl+Shift+R"],
+    ["transcribe",      "CommandOrControl+Shift+1", "CommandOrControl+Alt+R"],
     ["translate_en",    "CommandOrControl+Shift+2", "CommandOrControl+Shift+T"],
     ["coding_assistant","CommandOrControl+Shift+3", "CommandOrControl+Shift+C"],
   ];

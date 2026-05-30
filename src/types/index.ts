@@ -93,7 +93,7 @@ export const DEFAULT_TEMPLATES: Omit<Template, "created_at" | "updated_at">[] = 
     prompt_body: `Transcribe the audio verbatim. Preserve the original language of each word exactly as spoken — if the speaker switches between languages (e.g., Arabic and English), transcribe each word in the language it was spoken. Output the transcription only.`,
     output_language: null,
     model: null,
-    hotkey: "CommandOrControl+Shift+R",
+    hotkey: "CommandOrControl+Alt+R",
     is_default: 1,
     is_upload_only: 0,
     is_favorite: 0,

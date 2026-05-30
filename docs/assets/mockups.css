@@ -659,7 +659,7 @@
   .mk-pageheader .ph-left { flex-wrap: wrap; gap: 6px; }
   .mk-pageheader .ph-title { font-size: 13px; }
   .mk-pageheader .chip { font-size: 10.5px; padding: 3px 8px; }
-  /* The "Transcribe · Ctrl Shift R" chip is too crowded for phone width; drop it */
+  /* The "Transcribe · Ctrl Alt R" chip is too crowded for phone width; drop it */
   .mk-pageheader .chip-accent { display: none; }
 
   .mk-content { padding: 14px; }

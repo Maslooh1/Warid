@@ -15,7 +15,7 @@ Visit the [website](https://mohamedmaslooh.github.io/Warid/) for a visual overvi
 - **Custom prompt templates,** each with its own output language and Gemini model
 - **Streaming output:** text appears word by word as Gemini generates it
 - **Auto-copy to clipboard** when transcription finishes
-- **Global hotkey (Ctrl+Shift+R):** record from anywhere, even when the app is minimized
+- **Global hotkey (Ctrl+Alt+R):** record from anywhere, even when the app is minimized
 - **System tray:** keep Warid running silently in the background
 - **History:** local SQLite store of past transcriptions, fully searchable
 - **Editable output:** fix anything before copying
