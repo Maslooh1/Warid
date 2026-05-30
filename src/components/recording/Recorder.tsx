@@ -4,7 +4,7 @@ import { formatDuration, playBeep } from "../../lib/audio";
 import { recorder } from "../../lib/sharedRecorder";
 import { abortSignal, clearAbortSignal } from "../../lib/recordingAbort";
 import { doCancel } from "../../lib/cancelHotkey";
-import { streamAudio, KNOWN_MODELS } from "../../lib/gemini";
+import { streamAudio, KNOWN_MODELS, AUTO_MODEL_ID } from "../../lib/gemini";
 import { useRecordingStore } from "../../stores/recordingStore";
 import { useSettingsStore } from "../../stores/settingsStore";
 import { useTemplatesStore } from "../../stores/templatesStore";
@@ -58,7 +58,7 @@ export function Recorder() {
     const modelId = template.model || settings.selectedModel;
     const modelEntry = KNOWN_MODELS.find((m) => m.id === modelId);
     activeModelIdRef.current = modelId;
-    rs.setActiveModel(modelEntry?.label ?? modelId);
+    rs.setActiveModel(modelEntry?.label ?? (modelId === AUTO_MODEL_ID ? t("quota_auto") : modelId));
     addLog("info", t("log_msg_sending"), `template="${getTemplateName(template, lang)}" model=${modelEntry?.label ?? modelId}`);
 
     if (!settings.apiKey && !settings.openRouterApiKey) {
@@ -90,7 +90,12 @@ export function Recorder() {
         }
 
         let fullText = "";
-        const iterator = streamAudio(settings, template, base64, mimeType, addLog);
+        const iterator = streamAudio(settings, template, base64, mimeType, addLog, (usedModelId) => {
+          // Auto mode resolves to a concrete model only once a request is
+          // actually consumed — record it so history stores the real model.
+          activeModelIdRef.current = usedModelId;
+          rs.setActiveModel(KNOWN_MODELS.find((m) => m.id === usedModelId)?.label ?? usedModelId);
+        });
         for await (const chunk of iterator) {
           if (abortSignal.current) break;
           rs.appendOutput(chunk);

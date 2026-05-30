@@ -232,25 +232,134 @@ export type ModelQuota =
 
 export const KNOWN_MODELS: { id: string; provider: "gemini" | "openrouter"; label: string; quota: ModelQuota }[] = [
   { id: "gemini-3.1-flash-lite",                               provider: "gemini",     label: "Gemini 3.1 Flash Lite",           quota: { type: "free", rpm: 30, rpd: 500 } },
+  { id: "gemini-3.5-flash",                                    provider: "gemini",     label: "Gemini 3.5 Flash",                 quota: { type: "free", rpm: 10, rpd: 20 } },
   { id: "gemini-3-flash-preview",                              provider: "gemini",     label: "Gemini 3 Flash Preview",           quota: { type: "free", rpm: 10, rpd: 20 } },
+  { id: "gemini-2.5-flash",                                    provider: "gemini",     label: "Gemini 2.5 Flash",                 quota: { type: "free", rpm: 10, rpd: 20 } },
+  { id: "gemini-2.5-flash-lite",                               provider: "gemini",     label: "Gemini 2.5 Flash Lite",            quota: { type: "free", rpm: 15, rpd: 20 } },
   { id: "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free", provider: "openrouter", label: "Nemotron 3 Nano Omni 30B (free)",  quota: { type: "free_or_paid", freeRpd: 20, paidRpd: 1000 } },
   { id: "google/gemini-3.1-flash-lite",                        provider: "openrouter", label: "Gemini 3.1 Flash Lite (OR)",       quota: { type: "paid" } },
   { id: "google/gemini-3-flash-preview",                       provider: "openrouter", label: "Gemini 3 Flash Preview (OR)",      quota: { type: "paid" } },
   { id: "google/gemini-2.5-flash-lite-preview-09-2025",        provider: "openrouter", label: "Gemini 2.5 Flash Lite Preview (OR)", quota: { type: "paid" } },
 ];
 
+/** Sentinel id for the "Auto" selection — rotate through free Google models. */
+export const AUTO_MODEL_ID = "auto";
+
+/**
+ * Ordered priority list of free Google models used by Auto mode. The first
+ * entry is tried first; on failure (or when its daily quota is spent) Auto
+ * falls through to the next.
+ */
+export const AUTO_SEQUENCE: string[] = [
+  "gemini-3.1-flash-lite",
+  "gemini-3.5-flash",
+  "gemini-3-flash-preview",
+  "gemini-2.5-flash",
+  "gemini-2.5-flash-lite",
+];
+
+/** Daily request cap for a model id, or Infinity when it has no free cap. */
+export function modelDailyLimit(modelId: string): number {
+  const m = KNOWN_MODELS.find((x) => x.id === modelId);
+  if (!m) return Infinity;
+  if (m.quota.type === "free") return m.quota.rpd;
+  if (m.quota.type === "free_or_paid") return m.quota.freeRpd;
+  return Infinity;
+}
+
 import { useRequestTrackerStore } from "../stores/requestTrackerStore";
 
-export async function* streamAudio(
+/**
+ * Auto-mode candidates in priority order. Healthy models — quota left today and
+ * not in a high-demand cooldown — come first, in priority order. Models that are
+ * out of quota or temporarily cooling down are appended as a last resort so the
+ * user is never hard-blocked (caps and overloads both recover on Google's side).
+ */
+export function getAutoCandidates(): string[] {
+  const tracker = useRequestTrackerStore.getState();
+  const preferred: string[] = [];
+  const deprioritized: string[] = [];
+  for (const id of AUTO_SEQUENCE) {
+    const hasQuota = tracker.getRequestCountToday(id) < modelDailyLimit(id);
+    if (hasQuota && !tracker.isCoolingDown(id)) preferred.push(id);
+    else deprioritized.push(id);
+  }
+  return [...preferred, ...deprioritized];
+}
+
+/** How long to skip a model after it signals high demand / stalls, before
+ *  reverting to preferring it again. Temporary, never permanent. */
+const HIGH_DEMAND_COOLDOWN_MS = 3 * 60 * 60 * 1000; // 3 hours
+/** Max wait for the FIRST streamed token before abandoning a model. Generous
+ *  so large uploads / a momentarily slow model aren't cut off prematurely. */
+const FIRST_TOKEN_TIMEOUT_MS = 45_000;
+/** Max gap BETWEEN streamed tokens before treating the stream as stalled. */
+const STALL_TIMEOUT_MS = 25_000;
+
+/** Thrown when a model produces no output within the watchdog window. */
+class ModelTimeoutError extends Error {
+  constructor(ms: number) {
+    super(`Model produced no output within ${ms}ms`);
+    this.name = "ModelTimeoutError";
+  }
+}
+
+/**
+ * True for errors that mean "this model is busy/overloaded right now" — worth
+ * cooling it down and trying another. Covers rate limits (429), server overload
+ * (500/503/529), and our own no-response timeout.
+ */
+function isHighDemandError(err: unknown): boolean {
+  if (err instanceof ModelTimeoutError) return true;
+  const msg = (err instanceof Error ? err.message : String(err)).toLowerCase();
+  return /\b(429|500|503|529)\b/.test(msg)
+    || /overload|unavailable|exhaust|too many requests|rate.?limit|try again/.test(msg);
+}
+
+/**
+ * Wrap a token stream with watchdog timeouts: the first token must arrive within
+ * firstTokenMs, and no inter-token gap may exceed stallMs. On timeout the
+ * underlying request is cancelled and a ModelTimeoutError is thrown so Auto can
+ * move on. Once a stream completes normally it passes through untouched.
+ */
+async function* withTimeout(
+  gen: AsyncGenerator<string>,
+  firstTokenMs: number,
+  stallMs: number,
+): AsyncGenerator<string> {
+  const it = gen[Symbol.asyncIterator]();
+  let started = false;
+  try {
+    while (true) {
+      const limit = started ? stallMs : firstTokenMs;
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const timeout = new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new ModelTimeoutError(limit)), limit);
+      });
+      let res: IteratorResult<string>;
+      try {
+        res = await Promise.race([it.next(), timeout]);
+      } finally {
+        clearTimeout(timer);
+      }
+      if (res.done) return;
+      started = true;
+      yield res.value;
+    }
+  } finally {
+    // Stop the underlying request if we bailed out early (timeout/cancel).
+    try { await it.return?.(undefined as never); } catch { /* best effort */ }
+  }
+}
+
+async function* streamWithProvider(
   settings: Settings,
+  modelId: string,
   template: Template,
   audioBase64: string,
   mimeType: string,
   onLog?: OnLog,
 ): AsyncGenerator<string> {
-  const modelId = template.model || settings.selectedModel;
-  useRequestTrackerStore.getState().incrementRequest(modelId);
-
   const entry = KNOWN_MODELS.find((m) => m.id === modelId);
   const provider = entry?.provider ?? "gemini";
 
@@ -261,5 +370,70 @@ export async function* streamAudio(
     if (!settings.openRouterApiKey) throw new Error(t(settings.uiLanguage, "err_no_or_key"));
     yield* streamOpenRouter(settings.openRouterApiKey, modelId, template, audioBase64, mimeType, undefined, onLog);
   }
+}
+
+export async function* streamAudio(
+  settings: Settings,
+  template: Template,
+  audioBase64: string,
+  mimeType: string,
+  onLog?: OnLog,
+  /** Reports the model id actually used once a request is genuinely consumed. */
+  onModelUsed?: (modelId: string) => void,
+): AsyncGenerator<string> {
+  const configured = template.model || settings.selectedModel;
+  const isAuto = configured === AUTO_MODEL_ID;
+  const candidates = isAuto ? getAutoCandidates() : [configured];
+  if (candidates.length === 0) throw new Error(t(settings.uiLanguage, "err_auto_exhausted"));
+
+  // The first-token watchdog must not punish a big upload (large audio is sent
+  // before any token can arrive — via the Files API or a large POST body). Add
+  // a size-proportional allowance assuming a pessimistic 50 KB/s floor, so only
+  // a genuine hang trips the timeout, never a slow-but-progressing upload.
+  const uploadAllowanceMs = (audioBase64.length / (50 * 1024)) * 1000;
+  const firstTokenMs = FIRST_TOKEN_TIMEOUT_MS + uploadAllowanceMs;
+
+  const tracker = useRequestTrackerStore.getState();
+  let lastError: unknown = null;
+  for (let i = 0; i < candidates.length; i++) {
+    const modelId = candidates[i];
+    // A request is only "consumed" once the model starts responding. We count
+    // it on the first emitted token — so failed attempts that never reach the
+    // model (network errors, 429 rate limits, key issues) are never billed and
+    // retries don't double-count.
+    let consumed = false;
+    try {
+      const base = streamWithProvider(settings, modelId, template, audioBase64, mimeType, onLog);
+      // Only Auto's seamless multi-model fallback gets watchdog timeouts — an
+      // explicitly chosen single model is left to run without a deadline.
+      const stream = isAuto ? withTimeout(base, firstTokenMs, STALL_TIMEOUT_MS) : base;
+      for await (const chunk of stream) {
+        if (!consumed) {
+          consumed = true;
+          tracker.incrementRequest(modelId);
+          onModelUsed?.(modelId);
+        }
+        yield chunk;
+      }
+      return; // success — stop the fallback chain
+    } catch (err) {
+      lastError = err;
+      // Remember an overloaded/slow model so this retry — and the next
+      // recording — skip straight past it during the cooldown window.
+      if (isAuto && isHighDemandError(err)) {
+        tracker.markHighDemand(modelId, HIGH_DEMAND_COOLDOWN_MS);
+      }
+      // If the request was already consumed (tokens streamed, then it broke),
+      // don't silently switch models mid-output — surface the error so the
+      // caller's retry restarts cleanly (and now skips the cooled-down model).
+      if (consumed) throw err;
+      const next = candidates[i + 1];
+      if (next) {
+        const detail = err instanceof Error ? err.message : String(err);
+        onLog?.("warn", t(settings.uiLanguage, "log_auto_switch", modelId, next), detail);
+      }
+    }
+  }
+  throw lastError instanceof Error ? lastError : new Error(String(lastError));
 }
 

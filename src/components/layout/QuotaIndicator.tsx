@@ -1,6 +1,6 @@
 import { useSettingsStore } from "../../stores/settingsStore";
 import { useRequestTrackerStore } from "../../stores/requestTrackerStore";
-import { KNOWN_MODELS } from "../../lib/gemini";
+import { KNOWN_MODELS, AUTO_MODEL_ID, getAutoCandidates } from "../../lib/gemini";
 import { useLang } from "../../lib/useLang";
 
 export function QuotaIndicator({ modelId: propModelId }: { modelId?: string } = {}) {
@@ -8,7 +8,11 @@ export function QuotaIndicator({ modelId: propModelId }: { modelId?: string } = 
   const { getRequestCountToday } = useRequestTrackerStore();
   const { t } = useLang();
 
-  const modelId = propModelId || settings.selectedModel;
+  const selected = propModelId || settings.selectedModel;
+  const isAuto = selected === AUTO_MODEL_ID;
+  // In Auto mode, surface the model that will actually be used next (the first
+  // candidate with quota remaining) so the badge stays accurate per-model.
+  const modelId = isAuto ? (getAutoCandidates()[0] ?? selected) : selected;
   const model = KNOWN_MODELS.find((m) => m.id === modelId);
   if (!model) return null;
 
@@ -57,8 +61,8 @@ export function QuotaIndicator({ modelId: propModelId }: { modelId?: string } = 
         />
         <span className="relative inline-flex rounded-full h-1.5 w-1.5" style={{ background: dotColor }} />
       </span>
-      <span className="truncate max-w-[120px] font-medium" style={{ color: "var(--text-2)" }}>
-        {model.label}
+      <span className="truncate max-w-[160px] font-medium" style={{ color: "var(--text-2)" }}>
+        {isAuto ? `${t("quota_auto")} · ${model.label}` : model.label}
       </span>
       {hasLimit && (
         <>

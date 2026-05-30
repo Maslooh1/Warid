@@ -2,7 +2,9 @@ import { useState, useEffect } from "react";
 import { getVersion } from "@tauri-apps/api/app";
 import { Eye, EyeOff, Save } from "lucide-react";
 import { useSettingsStore } from "../../stores/settingsStore";
-import { KNOWN_MODELS } from "../../lib/gemini";
+import { KNOWN_MODELS, AUTO_MODEL_ID, AUTO_SEQUENCE, modelDailyLimit } from "../../lib/gemini";
+import { useRequestTrackerStore } from "../../stores/requestTrackerStore";
+import { Sparkles } from "lucide-react";
 import { Select } from "../ui/Select";
 import { HotkeyField } from "../ui/HotkeyField";
 import { useLang } from "../../lib/useLang";
@@ -12,6 +14,7 @@ type Tab = "keys" | "models" | "prefs" | "about";
 
 export function SettingsPage() {
   const { settings, update } = useSettingsStore();
+  const { getRequestCountToday } = useRequestTrackerStore();
   const { t } = useLang();
   const [activeTab, setActiveTab] = useState<Tab>("keys");
   const [showGeminiKey, setShowGeminiKey] = useState(false);
@@ -34,8 +37,21 @@ export function SettingsPage() {
     getVersion().then(setAppVersion).catch(() => {});
   }, []);
 
+  // Only "light up" the Save button when the form differs from saved settings.
+  const isDirty =
+    apiKey !== settings.apiKey ||
+    openRouterApiKey !== settings.openRouterApiKey ||
+    selectedModel !== settings.selectedModel ||
+    autoCopy !== settings.autoCopy ||
+    saveHistory !== settings.saveHistory ||
+    logsEnabled !== settings.logsEnabled ||
+    theme !== settings.theme ||
+    uiLanguage !== settings.uiLanguage ||
+    (cancelHotkey ?? "") !== (settings.cancelHotkey || "");
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isDirty) return;
     await setLaunchOnStartup(launchOnStartup).catch(() => {});
     await update({ apiKey, openRouterApiKey, selectedModel, autoCopy, saveHistory, logsEnabled, theme, uiLanguage, launchOnStartup, cancelHotkey: cancelHotkey ?? "" });
     setSaved(true);
@@ -63,6 +79,24 @@ export function SettingsPage() {
     return <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: "rgba(34,197,94,0.12)", color: "#4ade80" }}>{t("set_quota_free", quota.rpd.toString())}</span>;
   };
 
+  // Per-model "used today / remaining" line. Reflects accurate consumption —
+  // only requests the model actually received are counted.
+  const UsageLine = ({ modelId }: { modelId: string }) => {
+    const limit = modelDailyLimit(modelId);
+    if (!isFinite(limit)) return null;
+    const used = getRequestCountToday(modelId);
+    const pct = Math.min(100, Math.max(0, (used / limit) * 100));
+    const color = pct >= 80 ? "var(--danger)" : pct >= 50 ? "var(--warning)" : "var(--success)";
+    return (
+      <div className="mt-1.5 flex items-center gap-2">
+        <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: "var(--surface-3, var(--border))" }}>
+          <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: color }} />
+        </div>
+        <span className="text-[10px] font-mono shrink-0" style={{ color: "var(--muted)" }}>{t("set_used_today", String(used), String(limit))}</span>
+      </div>
+    );
+  };
+
   const tabs: { id: Tab; label: string }[] = [
     { id: "keys",   label: t("set_tab_keys") },
     { id: "models", label: t("set_tab_models") },
@@ -72,8 +106,14 @@ export function SettingsPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <header className="page-header">
+      <header className="page-header flex items-center justify-between">
         <h1 className="page-title">{t("set_title")}</h1>
+        {activeTab !== "about" && (
+          <button type="submit" form="settings-form" disabled={!isDirty} className="btn-primary" style={{ width: "auto" }}>
+            <Save size={16} strokeWidth={1.75} />
+            {saved ? t("set_saved") : t("set_save")}
+          </button>
+        )}
       </header>
 
       <div className="flex flex-1 overflow-hidden">
@@ -97,7 +137,7 @@ export function SettingsPage() {
 
         {/* Content area */}
         <div className="flex-1 overflow-y-auto">
-          <form onSubmit={handleSave} className="max-w-xl mx-auto p-6 space-y-8">
+          <form id="settings-form" onSubmit={handleSave} className="max-w-xl mx-auto p-6 space-y-8">
 
         {/* Tab: API Keys */}
         {activeTab === "keys" && (
@@ -139,11 +179,6 @@ export function SettingsPage() {
                 </p>
               </div>
             </section>
-
-            <button type="submit" className="btn-primary w-full">
-              <Save size={18} strokeWidth={1.75} />
-              {saved ? t("set_saved") : t("set_save")}
-            </button>
           </>
         )}
 
@@ -153,6 +188,22 @@ export function SettingsPage() {
             <section className="space-y-3">
               {sectionHeading(t("set_model"))}
               <p className="text-xs" style={{ color: "var(--muted)" }}>{t("set_model_hint")}</p>
+
+              {/* Auto mode — rotates through free Google models with fallback */}
+              <label className="flex items-start gap-3 p-3 cursor-pointer transition-colors" style={{ border: `1px solid ${selectedModel === AUTO_MODEL_ID ? "var(--accent-border)" : "var(--border)"}`, background: selectedModel === AUTO_MODEL_ID ? "var(--accent-soft)" : "var(--surface-2)", borderRadius: 10 }}>
+                <input type="radio" name="selectedModel" value={AUTO_MODEL_ID} checked={selectedModel === AUTO_MODEL_ID} onChange={() => setSelectedModel(AUTO_MODEL_ID)} className="mt-1" style={{ accentColor: "var(--accent)" }} />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Sparkles size={15} strokeWidth={2} style={{ color: selectedModel === AUTO_MODEL_ID ? "var(--accent)" : "var(--text-2)" }} />
+                    <p className="text-sm font-bold" style={{ color: selectedModel === AUTO_MODEL_ID ? "var(--accent)" : "var(--text)" }}>{t("set_auto_label")}</p>
+                  </div>
+                  <p className="text-xs mt-1" style={{ color: "var(--muted)" }}>{t("set_auto_desc")}</p>
+                  <p className="text-[10px] font-mono mt-1.5 truncate" style={{ color: "var(--muted)" }} dir="ltr">
+                    {AUTO_SEQUENCE.map((id) => KNOWN_MODELS.find((m) => m.id === id)?.label ?? id).join(" → ")}
+                  </p>
+                </div>
+              </label>
+
               {geminiModels.length > 0 && (
                 <div className="space-y-1.5">
                   <label className="section-label" style={{ color: "var(--text-2)" }}>Google AI Studio</label>
@@ -166,6 +217,7 @@ export function SettingsPage() {
                             <QuotaBadge quota={m.quota} />
                           </div>
                           <p className="text-xs font-mono truncate" style={{ color: "var(--muted)" }}>{m.id}</p>
+                          <UsageLine modelId={m.id} />
                         </div>
                       </label>
                     ))}
@@ -192,11 +244,6 @@ export function SettingsPage() {
                 </div>
               )}
             </section>
-
-            <button type="submit" className="btn-primary w-full">
-              <Save size={18} strokeWidth={1.75} />
-              {saved ? t("set_saved") : t("set_save")}
-            </button>
           </>
         )}
 
@@ -267,11 +314,6 @@ export function SettingsPage() {
                 {uiLanguage === "ar" ? "تطبيق فوري، بدون حاجة للحفظ" : "Applied instantly, no save needed"}
               </p>
             </section>
-
-            <button type="submit" className="btn-primary w-full">
-              <Save size={18} strokeWidth={1.75} />
-              {saved ? t("set_saved") : t("set_save")}
-            </button>
           </>
         )}
 

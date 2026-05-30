@@ -254,6 +254,8 @@ export function UploadPage() {
 
         // Step 4: Transcribe segments sequentially
         let completeTranscriptText = "";
+        // Track the model actually used (Auto mode resolves to a concrete model).
+        let usedModelId = template.model || settings.selectedModel;
 
         for (let s = 0; s < segments.length; s++) {
           if (isAborted) throw new Error("cancelled");
@@ -287,7 +289,8 @@ export function UploadPage() {
             "audio/wav",
             (level, msg, detail) => {
               addLog(level, `[Queue] ${item.name} (${s + 1}/${segments.length}): ${msg}`, detail);
-            }
+            },
+            (used) => { usedModelId = used; }
           );
 
           for await (const chunk of generator) {
@@ -319,7 +322,7 @@ export function UploadPage() {
             created_at: Date.now(),
             template_id: template.id,
             template_snapshot: JSON.stringify(template),
-            model: template.model || settings.selectedModel,
+            model: usedModelId,
             audio_path: null,
             duration_ms: durationMs,
             output_text: completeTranscriptText,

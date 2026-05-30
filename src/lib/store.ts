@@ -21,7 +21,18 @@ export async function loadSettings(): Promise<Settings> {
     }
   }
 
-  return { ...DEFAULT_SETTINGS, ...saved };
+  const settings = { ...DEFAULT_SETTINGS, ...saved };
+
+  // One-time migration: switch every existing user to Auto model selection.
+  // Runs once (guarded by autoModeMigrated) so a user who later picks a
+  // specific model is never forced back to Auto.
+  if (!settings.autoModeMigrated) {
+    settings.selectedModel = "auto";
+    settings.autoModeMigrated = true;
+    await saveSettings({ selectedModel: "auto", autoModeMigrated: true });
+  }
+
+  return settings;
 }
 
 export async function saveSettings(settings: Partial<Settings>): Promise<void> {

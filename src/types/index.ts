@@ -46,13 +46,15 @@ export interface Settings {
   cancelHotkey: string;
   /** False until the user dismisses the cancel-hotkey feature tip (shown once after upgrade). */
   seenCancelHotkey: boolean;
+  /** One-time flag: existing users are flipped to Auto model selection once. */
+  autoModeMigrated: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
   apiKey: "",
   openRouterApiKey: "",
   logsEnabled: false,
-  selectedModel: "gemini-3.1-flash-lite",
+  selectedModel: "auto",
   defaultTemplateId: "transcribe",
   autoCopy: true,
   showTray: true,
@@ -64,6 +66,7 @@ export const DEFAULT_SETTINGS: Settings = {
   launchOnStartup: false,
   cancelHotkey: "CommandOrControl+Alt+X",
   seenCancelHotkey: false,
+  autoModeMigrated: false,
 };
 
 export const DEFAULT_TEMPLATES: Omit<Template, "created_at" | "updated_at">[] = [

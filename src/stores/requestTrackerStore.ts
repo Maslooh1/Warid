@@ -3,11 +3,17 @@ import { create } from "zustand";
 interface QuotaState {
   // Key: YYYY-MM-DD
   usage: Record<string, Record<string, number>>;
+  // modelId -> epoch ms until which the model is deprioritized (high demand).
+  cooldowns: Record<string, number>;
   incrementRequest: (modelId: string) => void;
   getRequestCountToday: (modelId: string) => number;
+  /** Mark a model as overloaded; Auto skips it until the cooldown expires. */
+  markHighDemand: (modelId: string, durationMs: number) => void;
+  isCoolingDown: (modelId: string) => boolean;
 }
 
 const STORAGE_KEY = "warid-request-quota-v1";
+const COOLDOWN_KEY = "warid-model-cooldown-v1";
 
 const getTodayString = () => {
   const d = new Date();
@@ -38,8 +44,26 @@ const loadInitialUsage = (): Record<string, Record<string, number>> => {
   }
 };
 
+const loadInitialCooldowns = (): Record<string, number> => {
+  try {
+    const raw = localStorage.getItem(COOLDOWN_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw) as Record<string, number>;
+    const now = Date.now();
+    const cleaned: Record<string, number> = {};
+    // Drop already-expired entries so the map doesn't grow unbounded.
+    for (const [id, until] of Object.entries(parsed)) {
+      if (typeof until === "number" && until > now) cleaned[id] = until;
+    }
+    return cleaned;
+  } catch {
+    return {};
+  }
+};
+
 export const useRequestTrackerStore = create<QuotaState>((set, get) => ({
   usage: loadInitialUsage(),
+  cooldowns: loadInitialCooldowns(),
 
   incrementRequest: (modelId: string) => {
     const today = getTodayString();
@@ -56,4 +80,20 @@ export const useRequestTrackerStore = create<QuotaState>((set, get) => ({
     const today = getTodayString();
     return get().usage[today]?.[modelId] ?? 0;
   },
+
+  markHighDemand: (modelId: string, durationMs: number) => {
+    set((state) => {
+      const now = Date.now();
+      // Carry forward only still-active cooldowns, then add/extend this one.
+      const next: Record<string, number> = {};
+      for (const [id, until] of Object.entries(state.cooldowns)) {
+        if (until > now) next[id] = until;
+      }
+      next[modelId] = now + durationMs;
+      localStorage.setItem(COOLDOWN_KEY, JSON.stringify(next));
+      return { cooldowns: next };
+    });
+  },
+
+  isCoolingDown: (modelId: string) => (get().cooldowns[modelId] ?? 0) > Date.now(),
 }));

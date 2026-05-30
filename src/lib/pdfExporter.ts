@@ -1,37 +1,62 @@
 import jsPDF from "jspdf";
 import { invoke } from "@tauri-apps/api/core";
 
-/**
- * Converts simple Markdown blocks into flat text lines with spacing
- * for jsPDF rendering (which works in plain text / manual layout mode).
- */
-function parseMarkdownLines(text: string): Array<{ text: string; style: "h1" | "h2" | "h3" | "body" | "gap" }> {
-  const blocks = text.split(/\n\s*\n/);
-  const lines: Array<{ text: string; style: "h1" | "h2" | "h3" | "body" | "gap" }> = [];
+type LineStyle = "h1" | "h2" | "h3" | "body" | "gap";
 
-  for (const block of blocks) {
-    const trimmed = block.trim();
+/**
+ * Strip inline Markdown emphasis so body text never shows stray markers
+ * (`**bold**`, `*italic*`, `__x__`, `` `code` ``, `~~strike~~`). jsPDF renders
+ * each line in a single weight, so we normalise to clean plain text instead of
+ * leaking asterisks/backticks into the output.
+ */
+function stripInline(s: string): string {
+  return s
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/__(.+?)__/g, "$1")
+    .replace(/\*(.+?)\*/g, "$1")
+    .replace(/(^|[^\w])_(.+?)_(?=[^\w]|$)/g, "$1$2")
+    .replace(/`(.+?)`/g, "$1")
+    .replace(/~~(.+?)~~/g, "$1")
+    .trim();
+}
+
+/**
+ * Convert Markdown into styled lines for jsPDF's manual layout.
+ *
+ * Parses LINE BY LINE (not by blank-line blocks): a heading followed directly
+ * by its paragraph — with no blank line between — must not bleed its heading
+ * style onto the paragraph. Each line is classified independently.
+ */
+function parseMarkdownLines(text: string): Array<{ text: string; style: LineStyle }> {
+  const rawLines = text.replace(/\r\n/g, "\n").split("\n");
+  const lines: Array<{ text: string; style: LineStyle }> = [];
+
+  const pushGap = () => {
+    // Collapse consecutive blank lines into a single gap.
+    if (lines.length === 0 || lines[lines.length - 1].style === "gap") return;
+    lines.push({ text: "", style: "gap" });
+  };
+
+  for (const raw of rawLines) {
+    const trimmed = raw.trim();
     if (!trimmed) {
-      lines.push({ text: "", style: "gap" });
+      pushGap();
       continue;
     }
 
-    if (trimmed.startsWith("# ")) {
-      lines.push({ text: trimmed.slice(2), style: "h1" });
+    if (trimmed.startsWith("### ")) {
+      lines.push({ text: stripInline(trimmed.slice(4)), style: "h3" });
     } else if (trimmed.startsWith("## ")) {
-      lines.push({ text: trimmed.slice(3), style: "h2" });
-    } else if (trimmed.startsWith("### ")) {
-      lines.push({ text: trimmed.slice(4), style: "h3" });
+      lines.push({ text: stripInline(trimmed.slice(3)), style: "h2" });
+    } else if (trimmed.startsWith("# ")) {
+      lines.push({ text: stripInline(trimmed.slice(2)), style: "h1" });
     } else {
-      // Treat each block as a paragraph — split by newlines for list items
-      const subLines = trimmed.split("\n");
-      for (const sub of subLines) {
-        const sl = sub.trim();
-        if (sl) lines.push({ text: sl, style: "body" });
-      }
+      // List items: normalise "-", "*", "+" bullets to a real bullet glyph;
+      // keep "1." numbering as-is. Everything else is a plain paragraph line.
+      let body = trimmed;
+      if (/^[-*+]\s+/.test(body)) body = "•  " + body.replace(/^[-*+]\s+/, "");
+      lines.push({ text: stripInline(body), style: "body" });
     }
-
-    lines.push({ text: "", style: "gap" });
   }
 
   return lines;
@@ -48,6 +73,10 @@ export async function exportToPDF(fileName: string, text: string): Promise<void>
   const marginY = 20;
   const contentWidth = pageW - marginX * 2;
 
+  const PT_TO_MM = 25.4 / 72;
+  const LINE_HEIGHT = 1.25; // line-spacing factor, shared by jsPDF and our math
+  doc.setLineHeightFactor(LINE_HEIGHT);
+
   let y = marginY;
 
   const ensureSpace = (needed: number) => {
@@ -61,41 +90,49 @@ export async function exportToPDF(fileName: string, text: string): Promise<void>
 
   for (const line of parsedLines) {
     if (line.style === "gap") {
-      y += 4;
+      y += 3.5;
       continue;
     }
 
-    let fontSize = 12;
+    // One consistent type scale. Body is always the same weight/size; only
+    // headings differ. spaceBefore groups a section heading with the text
+    // that follows it by adding room above it.
+    let fontSize = 11;
     let isBold = false;
-
-    if (line.style === "h1") { fontSize = 20; isBold = true; }
-    else if (line.style === "h2") { fontSize = 16; isBold = true; }
-    else if (line.style === "h3") { fontSize = 13; isBold = true; }
+    let spaceBefore = 0;
+    if (line.style === "h1") { fontSize = 19; isBold = true; }
+    else if (line.style === "h2") { fontSize = 15; isBold = true; spaceBefore = 4; }
+    else if (line.style === "h3") { fontSize = 12.5; isBold = true; spaceBefore = 3; }
 
     doc.setFontSize(fontSize);
     doc.setFont("helvetica", isBold ? "bold" : "normal");
 
-    // Wrap long lines to fit contentWidth
     const wrapped = doc.splitTextToSize(line.text, contentWidth);
+    const lineHeightMm = fontSize * PT_TO_MM * LINE_HEIGHT;
+    const blockHeight = wrapped.length * lineHeightMm;
 
-    const lineHeight = fontSize * 0.45; // approx mm per pt
-    const blockHeight = wrapped.length * lineHeight + (isBold ? 3 : 1);
+    ensureSpace(spaceBefore + blockHeight + 4);
+    y += spaceBefore;
 
-    ensureSpace(blockHeight + 4);
-
+    // y tracks the top of the block; jsPDF anchors text at the baseline, so
+    // offset the first line down by roughly one font height.
+    const baselineOffset = fontSize * PT_TO_MM;
     const xPos = isArabic ? pageW - marginX : marginX;
     const align = isArabic ? "right" : "left";
 
-    doc.text(wrapped, xPos, y, { align } as Parameters<typeof doc.text>[3]);
+    doc.text(wrapped, xPos, y + baselineOffset, { align } as Parameters<typeof doc.text>[3]);
+    y += blockHeight;
 
     if (line.style === "h1") {
-      y += lineHeight * wrapped.length + 2;
+      y += 2;
       doc.setDrawColor(200, 195, 185);
       doc.setLineWidth(0.4);
       doc.line(marginX, y, pageW - marginX, y);
       y += 5;
+    } else if (isBold) {
+      y += 2; // breathing room under section headings
     } else {
-      y += lineHeight * wrapped.length + (isBold ? 4 : 3);
+      y += 1.5;
     }
   }
 

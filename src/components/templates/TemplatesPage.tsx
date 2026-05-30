@@ -3,7 +3,7 @@ import { Plus, Trash2, Save, X, Star } from "lucide-react";
 import { HotkeyField } from "../ui/HotkeyField";
 import { useTemplatesStore } from "../../stores/templatesStore";
 import { useSettingsStore } from "../../stores/settingsStore";
-import { KNOWN_MODELS } from "../../lib/gemini";
+import { KNOWN_MODELS, AUTO_MODEL_ID } from "../../lib/gemini";
 import { Select } from "../ui/Select";
 import { formatAccelerator, normalizeAccelerator } from "../../lib/hotkey";
 import { useLang } from "../../lib/useLang";
@@ -152,16 +152,25 @@ export function TemplatesPage() {
               </div>
 
               <div className="space-y-1.5">
-                <label className="section-label">{t("tpl_model", settings.selectedModel)}</label>
-                <Select
-                  value={editing.model ?? ""}
-                  onChange={(v) => setEditing({ ...editing, model: v || null })}
-                  dir="ltr"
-                  options={[
-                    { value: "", label: t("tpl_model_def", settings.selectedModel) },
-                    ...KNOWN_MODELS.map((m) => ({ value: m.id, label: m.label, hint: m.id })),
-                  ]}
-                />
+                {(() => {
+                  const defLabel = settings.selectedModel === AUTO_MODEL_ID
+                    ? t("quota_auto")
+                    : (KNOWN_MODELS.find((m) => m.id === settings.selectedModel)?.label ?? settings.selectedModel);
+                  return (
+                    <>
+                      <label className="section-label">{t("tpl_model", defLabel)}</label>
+                      <Select
+                        value={editing.model ?? ""}
+                        onChange={(v) => setEditing({ ...editing, model: v || null })}
+                        dir="ltr"
+                        options={[
+                          { value: "", label: t("tpl_model_def", defLabel) },
+                          ...KNOWN_MODELS.map((m) => ({ value: m.id, label: m.label, hint: m.id })),
+                        ]}
+                      />
+                    </>
+                  );
+                })()}
               </div>
 
               <HotkeyField value={editing.hotkey} onChange={(hk) => setEditing({ ...editing, hotkey: hk })} error={hotkeyError} />
